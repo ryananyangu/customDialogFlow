@@ -1,3 +1,14 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "sqltools.connections": [
+        {
+            "askForPassword": true,
+            "database": "hub",
+            "dialect": "MariaDB",
+            "name": "localhost",
+            "port": 3306,
+            "server": "localhost",
+            "username": "root"
+        }
+    ]
 }

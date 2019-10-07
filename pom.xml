@@ -37,6 +37,21 @@
     <artifactId>spring-boot-starter-data-jpa</artifactId>
     <version>2.1.4.RELEASE</version>
 </dependency>
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-jpa</artifactId>
+    <version>2.1.10.RELEASE</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+<!-- https://mvnrepository.com/artifact/org.json/json -->
+<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20190722</version>
+</dependency>
+
+
 <!-- https://mvnrepository.com/artifact/com.rabbitmq/amqp-client -->
 <dependency>
     <groupId>com.rabbitmq</groupId>
@@ -60,6 +75,14 @@
     <groupId>mysql</groupId>
     <artifactId>mysql-connector-java</artifactId>
     <version>8.0.15</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>1.4.192</version>
+    <scope>runtime</scope>
 </dependency>
 
   </dependencies>
