@@ -33,7 +33,7 @@ public class DepartmentController {
     public HttpStatus save(@RequestBody Map<String,Object> payload){
         Department department  = new Department();
         String departmentName =new JSONObject(payload).getString("department");
-        department.setDepartment(departmentName);
+        department.setDepartmentName(departmentName);
         departmentRepository.save(department);
         return HttpStatus.OK;
         

@@ -1,5 +1,6 @@
 package com.jovixe.boot.lab.model;
 
+import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -9,39 +10,36 @@ import javax.persistence.Id;
  * Department
  */
 @Entity
-public class Department {
+public class Department implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    long id;
+    private long departmentID;
+    private String departmentName;
+    private String departmentDesc;
 
-    String department;
-
-    /**
-     * @param department the department to set
-     */
-    public void setDepartment(String department) {
-        this.department = department;
+    public String getDepartmentName() {
+        return departmentName;
     }
 
-    /**
-     * @param id the id to set
-     */
-    public void setId(long id) {
-        this.id = id;
+
+    public long getDepartmentID() {
+        return departmentID;
     }
-    /**
-     * @return the department
-     */
-    public String getDepartment() {
-        return department;
-    }
-    /**
-     * @return the id
-     */
-    public long getId() {
-        return id;
-    }
+
     
-    
+    public void setDepartmentID(long departmentID) {
+        this.departmentID = departmentID;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+    public void setDepartmentDesc(String departmentDesc) {
+        this.departmentDesc = departmentDesc;
+    }
+
+    public String getDepartmentDesc() {
+        return departmentDesc;
+    }
 }
