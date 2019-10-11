@@ -1,45 +1,35 @@
 package com.jovixe.boot.lab.model;
 
+import lombok.Data;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Department
  */
-@Entity
-public class Department implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long departmentID;
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+public @Data class Department implements Serializable {
+
+    private @Id @GeneratedValue(strategy = GenerationType.AUTO) long departmentID;
+    private @CreatedDate LocalDateTime dateCreated;
+    private @LastModifiedDate LocalDateTime lastModifiedDate;
     private String departmentName;
     private String departmentDesc;
-
-    public String getDepartmentName() {
-        return departmentName;
-    }
-
-
-    public long getDepartmentID() {
-        return departmentID;
-    }
-
-    
-    public void setDepartmentID(long departmentID) {
-        this.departmentID = departmentID;
-    }
 
     public void setDepartmentName(String departmentName) {
         this.departmentName = departmentName;
     }
-    public void setDepartmentDesc(String departmentDesc) {
-        this.departmentDesc = departmentDesc;
-    }
-
-    public String getDepartmentDesc() {
-        return departmentDesc;
-    }
+    
+    
 }
