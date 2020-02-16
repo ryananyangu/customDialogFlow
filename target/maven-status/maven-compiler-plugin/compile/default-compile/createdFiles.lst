@@ -1,7 +1,5 @@
-com\jovixe\boot\lab\model\Department.class
-com\jovixe\boot\lab\model\Employee.class
-com\jovixe\boot\lab\App.class
-com\jovixe\boot\lab\controller\EmployeeController.class
-com\jovixe\boot\lab\repository\I_EmployeeRepository.class
-com\jovixe\boot\lab\controller\DepartmentController.class
-com\jovixe\boot\lab\repository\I_DepartmentRepository.class
+com/custom/dialog/lab/pojo/ScreenNode.class
+com/custom/dialog/lab/controller/DialogFlowController.class
+com/custom/dialog/lab/pojo/FlowGraph.class
+com/custom/dialog/lab/pojo/ScreenNode$NodeType.class
+com/custom/dialog/lab/App.class
