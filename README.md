@@ -1,11 +1,11 @@
------ Menu dialog flow as tree 
+# Custom Dilogue flow Application
 
 [![codecov](https://codecov.io/gh/ryananyangu/customDialogFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/ryananyangu/customDialogFlow) 
 [![Code Grade](https://www.code-inspector.com/project/4161/status/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
 [![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
 
 
----- Node Details:
+## Node Details:
 - NodePages(int, default:1) 
 - NodeHeader(txt, default:empty)
 - NodeName(str, required:true)  
@@ -16,19 +16,19 @@
 - NodeType(enum:{IM:Input Mode,SM: Selection Mode, EC: External Call, RT: Routed From Process response(Validation)},default:IM)
 - NodeExtraData(object, empty:true) // For EC must have SID
 
------ Graph Operations required
+## Graph Operations required
 - Search 
 - Traversals 
 - Insertions 
 
------ Consider node input types 
+## Consider node input types 
 
 1. input mode 
 2. Selection mode
 3. processing mode/external call (Http calls and Transformation functionality){call external system i.e. config app}
 4. If the node has no children (in NodeData) then it is the final node.
 
------ Below will be system calculated operation(s) conducted on each node
+## Below will be system calculated operation(s) conducted on each node
 
     a) Next --- Only where pages are more than than one and there is a page to move to.
     b) Previous --- available on paginated states only and there is a previous page
@@ -38,13 +38,13 @@
     f) Total pages within the nodeData
     g) input valaidation of **Input mode**
 
------ Implemention Considerations
+## Implemention Considerations
 
     i.   WebFrameworks (SpringWeb:java,Django:python)
     ii.  Graph libraries (custom:java, JGraphT:java)
     iii. Caching of structure/Flow (Esearch,Redis)
 
------ Success measure points
+## Success measure points
 
 1. Processing complexities (Mainly time and size)
 2. Dynamic loading
