@@ -1,8 +1,8 @@
 ----- Menu dialog flow as tree 
 
 [![codecov](https://codecov.io/gh/ryananyangu/customDialogFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/ryananyangu/customDialogFlow) 
-[![Code Grade](https://www.code-inspector.com/project/4161/status/svg)](https://www.code-inspector.com)
-[![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://www.code-inspector.com)
+[![Code Grade](https://www.code-inspector.com/project/4161/status/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
 
 
 ---- Node Details:
