@@ -49,5 +49,26 @@ public class ScreenModeTest {
     }
 
 
+    @Test
+    public void testGetNodepages(){
+        assertEquals(1, node.getNodePages());
+    }
+
+    @Test
+    public void testGetNodeID(){
+        assertEquals(1, node.getNodeId());
+    }
+
+    @Test
+    public void testGetNodeHeader(){
+        assertEquals("Enter your name ", node.getNodeHeader());
+    }
+
+    @Test
+    public void testToString(){
+        assertEquals(node.getNodeName(), node.toString());
+    }
+
+
     
 }
