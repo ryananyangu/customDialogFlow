@@ -1,5 +1,5 @@
-com/custom/dialog/lab/pojo/ScreenNode.class
-com/custom/dialog/lab/controller/DialogFlowController.class
-com/custom/dialog/lab/pojo/FlowGraph.class
-com/custom/dialog/lab/pojo/ScreenNode$NodeType.class
-com/custom/dialog/lab/App.class
+com\custom\dialog\lab\pojo\ScreenNode$NodeType.class
+com\custom\dialog\lab\pojo\ScreenNode.class
+com\custom\dialog\lab\controller\DialogFlowController.class
+com\custom\dialog\lab\App.class
+com\custom\dialog\lab\pojo\FlowGraph.class

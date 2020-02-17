@@ -16,6 +16,16 @@
             "mainClass": "com.jovixe.boot.lab.App",
             "projectName": "WinBootLab",
             "args": ""
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-App<DialogFlow>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "mainClass": "com.custom.dialog.lab.App",
+            "projectName": "DialogFlow",
+            "args": ""
         }
     ]
 }
