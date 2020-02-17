@@ -1,5 +1,8 @@
 ----- Menu dialog flow as tree 
 
+[![codecov](https://codecov.io/gh/ryananyangu/customDialogFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/ryananyangu/customDialogFlow)
+
+
 ---- Node Details:
 - NodePages(int, default:1) 
 - NodeHeader(txt, default:empty)
