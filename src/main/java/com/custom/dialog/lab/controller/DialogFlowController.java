@@ -1,14 +1,6 @@
 package com.custom.dialog.lab.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import com.custom.dialog.lab.pojo.FlowGraph;
-import com.custom.dialog.lab.pojo.ScreenNode;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.custom.dialog.lab.pojo.FlowProcessor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +14,9 @@ public class DialogFlowController{
     @GetMapping(path = "/get/flow", consumes = "application/json", produces = "application/json")
     @ResponseBody
     public String getMenu(@RequestParam String msisdn, @RequestParam String session, @RequestParam String input){
+
+        FlowProcessor processor = new FlowProcessor(input, session,msisdn);
+
         //TODO:
         /**
          * When user inputs put the input into the graph constructor
@@ -32,7 +27,7 @@ public class DialogFlowController{
          * update the current screen
          * and return response to the user
          */
-        return FlowGraph.loadGraph("flow.json").toString();
+        return processor.navigation();
     }
     
 }

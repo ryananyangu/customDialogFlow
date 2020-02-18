@@ -50,10 +50,11 @@
 2. Dynamic loading
 3. No dev work (Or very much limited)
 
-
-
     1. if in input mode(IM) : The display test is the NodeHeader
     2. if 2 or more IM's follow each other the Only the last IM is expected to have nodeData
         a. That is greater than 1
         b. all its predecessors will have nodeData that only contains the name of their child... i.e consecutive IM's have only on child
     3. if not root node : node name can be null hence the node name will be gotten from the NOde data list of parent
+
+### Sample request Format
+http://localhost:8080/api/v1/get/flow?msisdn=254722000000&session=356789879&input=100

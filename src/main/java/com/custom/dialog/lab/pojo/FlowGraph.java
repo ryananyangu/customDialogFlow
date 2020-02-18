@@ -14,34 +14,27 @@ import com.custom.dialog.lab.utils.Utils;
 
 import org.json.JSONObject;
 
-
 public class FlowGraph {
 
     /**
      * Used to load from file in system
+     * 
      * @param path
      * @param fileName
      */
-    public FlowGraph(String path, String fileName){
+    public FlowGraph(String path, String fileName) {
 
     }
 
-
-    public FlowGraph(String jsonFlow){
+    public FlowGraph(String jsonFlow) {
 
     }
 
-    public FlowGraph(){
-        
+    public FlowGraph() {
+
     }
 
-
-
-
-
-    private Map<ScreenNode,List<ScreenNode>> adjNodes = new HashMap<>();
-
-
+    private Map<ScreenNode, List<ScreenNode>> adjNodes = new HashMap<>();
 
     public List<ScreenNode> getAdjNodes(ScreenNode node) {
         return adjNodes.get(node);
@@ -50,7 +43,7 @@ public class FlowGraph {
     public void addNode(ScreenNode node) {
         adjNodes.putIfAbsent(node, new ArrayList<>());
     }
-    
+
     public void removeNode(ScreenNode node) {
         adjNodes.values().stream().forEach(e -> e.remove(node));
         adjNodes.remove(node);
@@ -78,7 +71,7 @@ public class FlowGraph {
             ScreenNode node = stack.pop();
             if (!visited.contains(node.getNodeName())) {
                 visited.add(node.getNodeName());
-                for (ScreenNode n : graph.getAdjNodes(node)) {              
+                for (ScreenNode n : graph.getAdjNodes(node)) {
                     stack.push(n);
                 }
             }
@@ -103,9 +96,5 @@ public class FlowGraph {
         return visited;
     }
 
-    public static JSONObject loadGraph(String file) {
-        String jsonString = Utils.readFile(file);
-        JSONObject map = new JSONObject(jsonString);
-        return map;
-}
+
 }
