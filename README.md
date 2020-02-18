@@ -1,8 +1,8 @@
 # Custom Dilogue flow Application
 
 [![codecov](https://codecov.io/gh/ryananyangu/customDialogFlow/branch/master/graph/badge.svg)](https://codecov.io/gh/ryananyangu/customDialogFlow) 
-[![Code Grade](https://www.code-inspector.com/project/4161/status/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
-[![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://frontend.code-inspector.com/project/4161/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/4161/status/svg)](https://frontend.code-inspector.com/public/project/4161/customDialogFlow/dashboard)
+[![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://frontend.code-inspector.com/public/project/4161/customDialogFlow/dashboard)
 
 
 ## Node Details:
