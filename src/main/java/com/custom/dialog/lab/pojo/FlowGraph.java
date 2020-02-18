@@ -10,10 +10,38 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
+import com.custom.dialog.lab.utils.Utils;
+
+import org.json.JSONObject;
+
 
 public class FlowGraph {
 
+    /**
+     * Used to load from file in system
+     * @param path
+     * @param fileName
+     */
+    public FlowGraph(String path, String fileName){
+
+    }
+
+
+    public FlowGraph(String jsonFlow){
+
+    }
+
+    public FlowGraph(){
+        
+    }
+
+
+
+
+
     private Map<ScreenNode,List<ScreenNode>> adjNodes = new HashMap<>();
+
+
 
     public List<ScreenNode> getAdjNodes(ScreenNode node) {
         return adjNodes.get(node);
@@ -74,4 +102,10 @@ public class FlowGraph {
         }
         return visited;
     }
+
+    public static JSONObject loadGraph(String file) {
+        String jsonString = Utils.readFile(file);
+        JSONObject map = new JSONObject(jsonString);
+        return map;
+}
 }
