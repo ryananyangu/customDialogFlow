@@ -9,92 +9,129 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import lombok.Data;
 
-import com.custom.dialog.lab.utils.Utils;
-
-import org.json.JSONObject;
-
+@Data
 public class FlowGraph {
 
+    private Map<ScreenNode, List<ScreenNode>> adjScreenNodes = new HashMap<>();
+
     /**
-     * Used to load from file in system
-     * 
-     * @param path
-     * @param fileName
+     * @return the adjVertices
      */
-    public FlowGraph(String path, String fileName) {
-
+    public Map<ScreenNode, List<ScreenNode>> getAdjScreenNodes() {
+        return adjScreenNodes;
     }
 
-    public FlowGraph(String jsonFlow) {
-
+    List<ScreenNode> getAdjScreenNodes(String nodeName) {
+        return adjScreenNodes.get(ScreenNode.builder().setNodeName(nodeName));
     }
 
-    public FlowGraph() {
-
+    List<ScreenNode> getAdjScreenNodes(ScreenNode node) {
+        return adjScreenNodes.get(node);
     }
 
-    private Map<ScreenNode, List<ScreenNode>> adjNodes = new HashMap<>();
-
-    public List<ScreenNode> getAdjNodes(ScreenNode node) {
-        return adjNodes.get(node);
+    void addScreenNode(String nodeName) {
+        adjScreenNodes.putIfAbsent(ScreenNode.builder().setNodeName(nodeName), new ArrayList<>());
     }
 
-    public void addNode(ScreenNode node) {
-        adjNodes.putIfAbsent(node, new ArrayList<>());
+    void addScreenNode(ScreenNode screenNode) {
+        adjScreenNodes.putIfAbsent(screenNode, new ArrayList<>());
     }
 
-    public void removeNode(ScreenNode node) {
-        adjNodes.values().stream().forEach(e -> e.remove(node));
-        adjNodes.remove(node);
+    void removeScreenNode(String nodeName) {
+        ScreenNode node = ScreenNode.builder().setNodeName(nodeName);
+        adjScreenNodes.values().stream().forEach(e -> e.remove(node));
+        adjScreenNodes.remove(node);
     }
 
-    public void addLink(ScreenNode node, ScreenNode node2) {
-        adjNodes.get(node).add(node2);
-        adjNodes.get(node2).add(node);
+    void removeScreenNode(ScreenNode node) {
+        adjScreenNodes.values().stream().forEach(e -> e.remove(node));
+        adjScreenNodes.remove(node);
     }
 
-    public void removeLink(ScreenNode node, ScreenNode node2) {
-        List<ScreenNode> eN1 = adjNodes.get(node);
-        List<ScreenNode> eN2 = adjNodes.get(node2);
-        if (eN1 != null)
-            eN1.remove(node2);
-        if (eN2 != null)
-            eN2.remove(node);
+    void addNodeLink(String nodeName1, String nodeName2) {
+        ScreenNode node1 = ScreenNode.builder().setNodeName(nodeName1);
+        ScreenNode node2 = ScreenNode.builder().setNodeName(nodeName2);
+        adjScreenNodes.get(node1).add(node2);
+        adjScreenNodes.get(node2).add(node1);
     }
 
-    public Set<String> depthFirstTraversal(FlowGraph graph, ScreenNode RootNode) {
-        Set<String> visited = new LinkedHashSet<String>();
-        Stack<ScreenNode> stack = new Stack<ScreenNode>();
-        stack.push(RootNode);
+    void addNodeLink(ScreenNode node1, ScreenNode node2) {
+        adjScreenNodes.get(node1).add(node2);
+        adjScreenNodes.get(node2).add(node1);
+    }
+
+    void removeNodeLink(String nodeName1, String nodeName2) {
+        ScreenNode node1 = ScreenNode.builder().setNodeName(nodeName1);
+        ScreenNode node2 = ScreenNode.builder().setNodeName(nodeName2);
+        List<ScreenNode> eV1 = adjScreenNodes.get(node1);
+        List<ScreenNode> eV2 = adjScreenNodes.get(node2);
+        if (eV1 != null) {
+            eV1.remove(node1);
+        }
+        if (eV2 != null) {
+            eV2.remove(node2);
+        }
+    }
+
+    void removeNodeLink(ScreenNode node1, ScreenNode node2) {
+        List<ScreenNode> eV1 = adjScreenNodes.get(node1);
+        List<ScreenNode> eV2 = adjScreenNodes.get(node2);
+        if (eV1 != null) {
+            eV1.remove(node1);
+        }
+        if (eV2 != null) {
+            eV2.remove(node2);
+        }
+    }
+
+    public static Set<String> depthFirstTraversal(FlowGraph graph, String root) {
+        Set<String> visited = new LinkedHashSet<>();
+        Stack<String> stack = new Stack<>();
+        stack.push(root);
+        while (!stack.isEmpty()) {
+            String vertex = stack.pop();
+            if (!visited.contains(vertex)) {
+                visited.add(vertex);
+                graph.getAdjScreenNodes(vertex).forEach((node) -> {
+                    stack.push(node.getNodeName());
+                });
+            }
+        }
+        return visited;
+    }
+
+    public static Set<String> depthFirstTraversal(FlowGraph graph, ScreenNode root) {
+        Set<String> visited = new LinkedHashSet<>();
+        Stack<ScreenNode> stack = new Stack<>();
+        stack.push(root);
         while (!stack.isEmpty()) {
             ScreenNode node = stack.pop();
             if (!visited.contains(node.getNodeName())) {
                 visited.add(node.getNodeName());
-                for (ScreenNode n : graph.getAdjNodes(node)) {
-                    stack.push(n);
-                }
+                graph.getAdjScreenNodes(node).forEach((node_tmp) -> {
+                    stack.push(node_tmp);
+                });
             }
         }
         return visited;
     }
 
-    public Set<String> breadthFirstTraversal(FlowGraph graph, ScreenNode RootNode) {
-        Set<String> visited = new LinkedHashSet<String>();
-        Queue<ScreenNode> queue = new LinkedList<ScreenNode>();
-        queue.add(RootNode);
-        visited.add(RootNode.getNodeName());
+    public static Set<String> breadthFirstTraversal(FlowGraph graph, String root) {
+        Set<String> visited = new LinkedHashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        queue.add(root);
+        visited.add(root);
         while (!queue.isEmpty()) {
-            ScreenNode node = queue.poll();
-            for (ScreenNode n : graph.getAdjNodes(node)) {
-                if (!visited.contains(n.getNodeName())) {
-                    visited.add(n.getNodeName());
-                    queue.add(n);
-                }
-            }
+            String vertex = queue.poll();
+            graph.getAdjScreenNodes(vertex).stream().filter((v) -> (!visited.contains(v.getNodeName()))).map((v) -> {
+                visited.add(v.getNodeName());
+                return v;
+            }).forEachOrdered((v) -> {
+                queue.add(v.getNodeName());
+            });
         }
         return visited;
     }
-
-
 }

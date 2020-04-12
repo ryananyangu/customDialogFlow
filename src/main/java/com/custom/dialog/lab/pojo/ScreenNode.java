@@ -1,123 +1,107 @@
 package com.custom.dialog.lab.pojo;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import lombok.Data;
 
-
+@Data
 public class ScreenNode {
-
-    /*
-    - NodePages(int, default:1) 
-	- NodeHeader(txt, default:empty)
-	- NodeName(str, required:true)  
-	- NodeData (list:str->HeaderName(s),reuired:true)
-	- NodeCurrentPage (int, default:1)
-	- NodeId(int, required:true)
-	- NodeActiveStatus(bool, default:true)
-	- NodeType(enum:{IM:Input Mode,SM: Selection Mode, EC: External Call, RT: Routed From Process response(Validation)},default:IM)
-    - NodeExtraData(object, empty:true) // For EC must have SID
-    */
     
     private int NodePages = 1;
     private int NodeCurrentPage = 1;
     private int NodeId; // Has to be set and validated
     private boolean NodeActiveStatus = true;
 
-    private String NodeHeader = "";
-    private String NodeName = "start page"; // default is start page hence validate only one start page should exist
-    private List<String> NodeData = new ArrayList<>();
+    private String NodeHeader = new String();
+    private String NodeName = new String(); // default is start page hence validate only one start page should exist
+    
+    /**
+     * Can only either be node item or node options but not both
+     */
+    
+    private HashMap<String,String> NodeOptions = new HashMap<>(); // go to the has next nodes
+    private HashMap<String,String> NodeItems = new HashMap<>(); // regardles of input next node is const
     
     private HashMap<String,String> NodeExtraData = new HashMap<>();
+      
     
-    public ScreenNode(String NodeName, int NodeId, boolean NodeActiveStatus, 
-            String NodeHeader, List<String> NodeData,HashMap<String,String> NodeExtraData, String NodeType)
-    {
-        this.NodeName = NodeName;
-        this.NodeId = NodeId;
-        this.NodeActiveStatus = NodeActiveStatus;
-        this.NodeHeader = NodeHeader;
-        this.NodeData = NodeData;
-        this.NodeExtraData = NodeExtraData;
-
+    /**
+     * @param nodeCurrentPage the nodeCurrentPage to set
+     */
+    public ScreenNode setNodeCurrentPage(int nodeCurrentPage) {
+        NodeCurrentPage = nodeCurrentPage;
+        return this;
     }
+
+    /**
+     * @param nodeExtraData the nodeExtraData to set
+     */
+    public ScreenNode setNodeExtraData(HashMap<String, String> nodeExtraData) {
+        NodeExtraData = nodeExtraData;
+        return this;
+    }
+
+    /**
+     * @param nodeHeader the nodeHeader to set
+     */
+    public ScreenNode setNodeHeader(String nodeHeader) {
+        NodeHeader = nodeHeader;
+        return this;
+    }
+
+    /**
+     * @param nodeId the nodeId to set
+     */
+    public ScreenNode setNodeId(int nodeId) {
+        NodeId = nodeId;
+        return this;
+    }
+
+
+    /**
+     * @param nodeItems the nodeItems to set
+     */
+    public ScreenNode setNodeItems(HashMap<String, String> nodeItems) {
+        NodeItems = nodeItems;
+        return this;
+    }
+
+    /**
+     * @param nodeActiveStatus the nodeActiveStatus to set
+     */
+    public ScreenNode setNodeActiveStatus(boolean nodeActiveStatus) {
+        NodeActiveStatus = nodeActiveStatus;
+        return this;
+    }
+
+    /**
+     * @param nodeName the nodeName to set
+     */
+    public ScreenNode setNodeName(String nodeName) {
+        NodeName = nodeName;
+        return this;
+    }
+
+    /**
+     * @param nodeOptions the nodeOptions to set
+     */
+    public ScreenNode setNodeOptions(HashMap<String, String> nodeOptions) {
+        NodeOptions = nodeOptions;
+        return this;
+    }
+
+    /**
+     * @param nodePages the nodePages to set
+     */
+    public ScreenNode setNodePages(int nodePages) {
+        NodePages = nodePages;
+        return this;
+    }
+
     
-
-    public enum NodeType {
-        IM,SM,EC,RT
-    }
-
-    /**
-     * @return the nodePages
-     */
-    public int getNodePages() {
-        return NodePages;
-    }
-
-    /**
-     * @return the nodeCurrentPage
-     */
-    public int getNodeCurrentPage() {
-        return NodeCurrentPage;
-    }
-
-    /**
-     * @return the nodeId
-     */
-    public int getNodeId() {
-        return NodeId;
-    }
-
-
-    /**
-     * @return the nodeName
-     */
-    public String getNodeName() {
-        return NodeName;
-    }
-
-    public boolean getNodeActiveStatus(){
-        return NodeActiveStatus;
-    }
-
-    /**
-     * @return the nodeHeader
-     */
-    public String getNodeHeader() {
-        return NodeHeader;
-    }
-
-
-    /**
-     * @return the nodeData
-     */
-    public List<String> getNodeData() {
-        return NodeData;
-    }
-
-    /**
-     * @return the nodeExtraData
-     */
-    public Object getNodeExtraData() {
-        return NodeExtraData;
-    }
     
     
-
-
-    @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
+    public static ScreenNode builder(){
+        ScreenNode screen = new ScreenNode();
+        return screen;
     }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return this.NodeName;
-    }
-    
 }
