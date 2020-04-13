@@ -24,7 +24,9 @@ public class FlowGraph {
     }
 
     List<ScreenNode> getAdjScreenNodes(String nodeName) {
-        return adjScreenNodes.get(ScreenNode.builder().setNodeName(nodeName));
+        ScreenNode node = new ScreenNode();
+        node.setNodeName(nodeName);
+        return adjScreenNodes.get(node);
     }
 
     List<ScreenNode> getAdjScreenNodes(ScreenNode node) {
@@ -32,7 +34,9 @@ public class FlowGraph {
     }
 
     void addScreenNode(String nodeName) {
-        adjScreenNodes.putIfAbsent(ScreenNode.builder().setNodeName(nodeName), new ArrayList<>());
+        ScreenNode node = new ScreenNode();
+        node.setNodeName(nodeName);
+        adjScreenNodes.putIfAbsent(node, new ArrayList<>());
     }
 
     void addScreenNode(ScreenNode screenNode) {
@@ -40,7 +44,8 @@ public class FlowGraph {
     }
 
     void removeScreenNode(String nodeName) {
-        ScreenNode node = ScreenNode.builder().setNodeName(nodeName);
+        ScreenNode node = new ScreenNode();
+        node.setNodeName(nodeName);
         adjScreenNodes.values().stream().forEach(e -> e.remove(node));
         adjScreenNodes.remove(node);
     }
@@ -51,8 +56,10 @@ public class FlowGraph {
     }
 
     void addNodeLink(String nodeName1, String nodeName2) {
-        ScreenNode node1 = ScreenNode.builder().setNodeName(nodeName1);
-        ScreenNode node2 = ScreenNode.builder().setNodeName(nodeName2);
+        ScreenNode node1 = new ScreenNode();
+        node1.setNodeName(nodeName1);
+        ScreenNode node2 = new ScreenNode();
+        node2.setNodeName(nodeName2);
         adjScreenNodes.get(node1).add(node2);
         adjScreenNodes.get(node2).add(node1);
     }
@@ -63,8 +70,10 @@ public class FlowGraph {
     }
 
     void removeNodeLink(String nodeName1, String nodeName2) {
-        ScreenNode node1 = ScreenNode.builder().setNodeName(nodeName1);
-        ScreenNode node2 = ScreenNode.builder().setNodeName(nodeName2);
+        ScreenNode node1 = new ScreenNode();
+        node1.setNodeName(nodeName1);
+        ScreenNode node2 = new ScreenNode();
+        node2.setNodeName(nodeName2);
         List<ScreenNode> eV1 = adjScreenNodes.get(node1);
         List<ScreenNode> eV2 = adjScreenNodes.get(node2);
         if (eV1 != null) {

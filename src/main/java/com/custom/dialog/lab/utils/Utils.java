@@ -109,4 +109,11 @@ public class Utils {
 		String reportDate = df.format(today);
 		return reportDate;
 	}
+        
+        public static JSONObject errorDisplay(String code,String Message){
+            JSONObject error = new JSONObject();
+            error.put("ErrorCode", code);
+            error.put("Message", Message);
+            return error;
+        }
 }
