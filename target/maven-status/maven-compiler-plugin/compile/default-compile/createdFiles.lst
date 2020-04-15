@@ -2,8 +2,7 @@ com/custom/dialog/lab/utils/Utils.class
 com/custom/dialog/lab/pojo/Session.class
 com/custom/dialog/lab/pojo/ScreenNode.class
 com/custom/dialog/lab/controller/DialogFlowController.class
-com/custom/dialog/lab/utils/RedisConfig.class
-com/custom/dialog/lab/pojo/FlowProcessor.class
 com/custom/dialog/lab/pojo/FlowGraph.class
 com/custom/dialog/lab/utils/Props.class
+.netbeans_automatic_build
 com/custom/dialog/lab/App.class

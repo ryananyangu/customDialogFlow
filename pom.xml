@@ -218,6 +218,12 @@
       <version>1.18.8</version>
       <scope>provided</scope>
     </dependency>
+    
+    <dependency>
+  <groupId>com.messagebird</groupId>
+  <artifactId>messagebird-api</artifactId>
+  <version>3.0.12</version>
+</dependency>
 
   </dependencies>
 </project>
