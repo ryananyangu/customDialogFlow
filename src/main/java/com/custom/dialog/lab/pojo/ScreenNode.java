@@ -1,9 +1,12 @@
 package com.custom.dialog.lab.pojo;
 
+import com.custom.dialog.lab.utils.Props;
 import com.custom.dialog.lab.utils.Utils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import java.util.*;
 import lombok.Data;
 import java.lang.reflect.Field;
 import org.json.JSONArray;
@@ -11,6 +14,19 @@ import org.json.JSONObject;
 
 @Data
 public class ScreenNode {
+    
+    private static final Props SETTINGS = new Props();
+    private RedisCommands<String, String> syncCommands;
+    
+    public ScreenNode(){
+                RedisURI redisURI = RedisURI.Builder.
+                redis(SETTINGS.getRedis_host(), SETTINGS.getRedis_port())
+                .withPassword(SETTINGS.getRedis_password()).build();
+        RedisClient redisClient = RedisClient.create(redisURI);
+        StatefulRedisConnection<String, String> connection = redisClient.connect();
+
+        syncCommands = connection.sync();
+    }
 
     private boolean isScreenActive = true;
     private String screenNext = new String();
@@ -32,7 +48,7 @@ public class ScreenNode {
 
         }
 
-        return Utils.responseDisplay("400_SCRN_1", "Validation failed, Mandatory fields left empty");
+        return SETTINGS.getStatusResponse("400_SCRN_1");
 
     }
 
@@ -41,7 +57,7 @@ public class ScreenNode {
             return new JSONObject();
         }
 
-        return Utils.responseDisplay("400_SCRN_2", "Validation failed, Raw input has to define screen Next and not have option and items");
+        return SETTINGS.getStatusResponse("400_SCRN_2");
 
     }
 
@@ -53,7 +69,42 @@ public class ScreenNode {
             return new JSONObject();
 
         }
-        return Utils.responseDisplay("400_SCRN_3", "Validation failed, options input has to define screen Next and have option and not items");
+        return  SETTINGS.getStatusResponse("400_SCRN_3");
+    }
+    
+    public String prepareToRedis(){
+        
+        JSONObject nodeData = new JSONObject();
+//        nodeData.put("nodeName", nodeName);
+        nodeData.put("isScreenActive", isScreenActive);
+        nodeData.put("screenNext", screenNext);
+        nodeData.put("screenText", screenText);
+        nodeData.put("screenType", screenType);  
+        nodeData.put("nodeOptions", new JSONArray(nodeOptions).toString());                
+        nodeData.put("nodeItems", new JSONArray(nodeItems).toString());
+        nodeData.put("nodeExtraData", new JSONObject(nodeExtraData).toString());                        
+        nodeData.put("shortCode", shortCode);  
+        
+        return nodeData.toString();
+    }
+    
+    public JSONObject saveRedisData(String data){
+        
+        Map<String,String> codePages =   syncCommands.hgetall(shortCode);
+        if(codePages.isEmpty())
+        {
+            syncCommands.hset(shortCode, "start_page",data);
+            return SETTINGS.getStatusResponse("200_SCRN");
+        }
+        
+        if(!codePages.containsKey(nodeName)){
+            syncCommands.hset(shortCode, nodeName,data);
+            return SETTINGS.getStatusResponse("200_SCRN");
+        }
+        
+        return SETTINGS.getStatusResponse("400_SCRN_7");
+        
+        
     }
 
     public JSONObject validateItems(JSONArray nodeOptions, JSONArray nodeItems) {
@@ -68,12 +119,12 @@ public class ScreenNode {
                     
                     
                 }else{
-                    return Utils.responseDisplay("400_SCRN_5", "Validation failed, items should contain both nextScreen and displayText key");
+                    return SETTINGS.getStatusResponse("400_SCRN_5");
                 }     
             }
             return new JSONObject();   
         }
-        return Utils.responseDisplay("400_SCRN_4", "Validation failed, items input has to define screen Next and have items and not options");
+        return SETTINGS.getStatusResponse("400_SCRN_4");
 
     }
 
@@ -102,7 +153,7 @@ public class ScreenNode {
         } else if (getScreenType().equalsIgnoreCase("items")) {
             return validateItems(jsonNodeOptions, jsonNodeItems);
         } else {
-            return Utils.responseDisplay("400_SCRN_6", "Uknown Page type submitted -> " + getScreenType());
+            return SETTINGS.getStatusResponse("400_SCRN_6");
         }
 
     }
@@ -112,14 +163,14 @@ public class ScreenNode {
         for (Field field : this.getClass().getDeclaredFields()) {
             String val = new String();
             String varname = field.getName();
+            if(varname.equalsIgnoreCase("SETTINGS") || varname.equalsIgnoreCase("syncCommands")){
+                continue;
+            }
             try {
                 val = field.get(this) == null ? new String() : field.get(this) + "";
                 mapedMap.put(varname, val);
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 e.printStackTrace();
-            }
-            if (val.isEmpty()) {
-                throw new IllegalArgumentException(varname);
             }
 
         }

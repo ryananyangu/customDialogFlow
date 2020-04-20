@@ -110,10 +110,4 @@ public class Utils {
 		return reportDate;
 	}
         
-        public static JSONObject responseDisplay(String code,String Message){
-            JSONObject error = new JSONObject();
-            error.put("statusCode", code);
-            error.put("message", Message);
-            return error;
-        }
 }

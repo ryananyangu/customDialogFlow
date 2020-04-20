@@ -1,0 +1,11 @@
+{
+    "200_SCRN": "Success",
+    "400_SCRN_5": "Validation failed, items should contain both nextScreen and displayText key",
+    "400_SCRN_6": "Uknown Page type submitted",
+    "400_SCRN_1": "Validation failed, Mandatory fields left empty",
+    "400_SCRN_2": "Validation failed, Raw input has to define screen Next and not have option and items",
+    "400_SCRN_3": "Validation failed, options input has to define screen Next and have option and not items",
+    "400_SCRN_4": "Validation failed, items input has to define screen Next and have items and not options",
+    "404_ND": "Invalid Input",
+    "400_SCRN_7": "Duplicate screen name for the shortcode"
+}

@@ -44,7 +44,7 @@ public class Session {
         if (sessionData.isEmpty()) {
             Map<String, String> flowData = syncCommands.hgetall(input);
             if (flowData.isEmpty()) {
-                return Utils.responseDisplay("404_ND", "Invalid Input");
+                return SETTINGS.getStatusResponse("404_ND");
             }
             // set session tied to shortcode // should always have one item
             syncCommands.hset(sessionId, input, "start_page");
