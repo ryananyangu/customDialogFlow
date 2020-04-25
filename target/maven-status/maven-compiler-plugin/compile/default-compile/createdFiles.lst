@@ -4,5 +4,4 @@ com/custom/dialog/lab/pojo/ScreenNode.class
 com/custom/dialog/lab/controller/DialogFlowController.class
 com/custom/dialog/lab/pojo/FlowGraph.class
 com/custom/dialog/lab/utils/Props.class
-.netbeans_automatic_build
 com/custom/dialog/lab/App.class

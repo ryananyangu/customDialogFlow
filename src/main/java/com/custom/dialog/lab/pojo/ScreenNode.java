@@ -1,31 +1,33 @@
 package com.custom.dialog.lab.pojo;
 
 import com.custom.dialog.lab.utils.Props;
-import com.custom.dialog.lab.utils.Utils;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
+import com.google.api.core.ApiFuture;
+import com.google.cloud.firestore.CollectionReference;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
+import com.google.cloud.firestore.WriteResult;
+import com.google.common.collect.ImmutableMap;
 import java.util.*;
 import lombok.Data;
 import java.lang.reflect.Field;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 @Data
 public class ScreenNode {
-    
-    private static final Props SETTINGS = new Props();
-    private RedisCommands<String, String> syncCommands;
-    
-    public ScreenNode(){
-                RedisURI redisURI = RedisURI.Builder.
-                redis(SETTINGS.getRedis_host(), SETTINGS.getRedis_port())
-                .withPassword(SETTINGS.getRedis_password()).build();
-        RedisClient redisClient = RedisClient.create(redisURI);
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
 
-        syncCommands = connection.sync();
+    private static final Props SETTINGS = new Props();
+    private final List<String> pendingScreens = new ArrayList<>();
+    private Firestore database;
+    private final static Logger LOGGER = Logger.getLogger(ScreenNode.class.getName());
+
+    public ScreenNode() {
+        database = FirestoreOptions.getDefaultInstance().getService();
     }
 
     private boolean isScreenActive = true;
@@ -48,7 +50,7 @@ public class ScreenNode {
 
         }
 
-        return SETTINGS.getStatusResponse("400_SCRN_1");
+        return SETTINGS.getStatusResponse("400_SCRN_1", new HashMap());
 
     }
 
@@ -57,7 +59,7 @@ public class ScreenNode {
             return new JSONObject();
         }
 
-        return SETTINGS.getStatusResponse("400_SCRN_2");
+        return SETTINGS.getStatusResponse("400_SCRN_2", new HashMap());
 
     }
 
@@ -69,42 +71,59 @@ public class ScreenNode {
             return new JSONObject();
 
         }
-        return  SETTINGS.getStatusResponse("400_SCRN_3");
+        return SETTINGS.getStatusResponse("400_SCRN_3", new HashMap());
     }
-    
-    public String prepareToRedis(){
-        
-        JSONObject nodeData = new JSONObject();
-//        nodeData.put("nodeName", nodeName);
+
+    public HashMap prepareToRedis() {
+
+        HashMap<String, Object> nodeData = new HashMap<>();
         nodeData.put("isScreenActive", isScreenActive);
         nodeData.put("screenNext", screenNext);
         nodeData.put("screenText", screenText);
-        nodeData.put("screenType", screenType);  
-        nodeData.put("nodeOptions", new JSONArray(nodeOptions).toString());                
-        nodeData.put("nodeItems", new JSONArray(nodeItems).toString());
-        nodeData.put("nodeExtraData", new JSONObject(nodeExtraData).toString());                        
-        nodeData.put("shortCode", shortCode);  
-        
-        return nodeData.toString();
+        nodeData.put("screenType", screenType);
+        nodeData.put("nodeOptions", nodeOptions);
+        nodeData.put("nodeItems", nodeItems);
+        nodeData.put("nodeExtraData", nodeExtraData);
+        nodeData.put("shortCode", shortCode);
+
+        return nodeData;
     }
-    
-    public JSONObject saveRedisData(String data){
-        
-        Map<String,String> codePages =   syncCommands.hgetall(shortCode);
-        if(codePages.isEmpty())
-        {
-            syncCommands.hset(shortCode, "start_page",data);
-            return SETTINGS.getStatusResponse("200_SCRN");
+
+    public JSONObject saveRedisData(Map<String, Object> data) {
+        CollectionReference collectionReference = database.collection(shortCode);
+  
+        DocumentReference documentReference = collectionReference.document(nodeName);
+        ApiFuture<DocumentSnapshot> future = documentReference.get();
+        DocumentSnapshot document = null;
+        Map<String, Object> response_data = new HashMap<>();
+        try {
+            document = future.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+
+            return SETTINGS.getStatusResponse("500_STS_3", response_data);
+        }
+
+        if (!document.exists()) {
+            // TODO: Check if collection exists
+            documentReference.set(data);
+
+            response_data.put("pending_screens", pendingScreens);
+            return SETTINGS.getStatusResponse("200_SCRN", response_data);
         }
         
-        if(!codePages.containsKey(nodeName)){
-            syncCommands.hset(shortCode, nodeName,data);
-            return SETTINGS.getStatusResponse("200_SCRN");
+        
+
+        return SETTINGS.getStatusResponse("400_SCRN_7", response_data);
+
+    }
+
+    public List<String> setPendingScreens(String screenName) {
+        if (screenName.equalsIgnoreCase("quit")) {
+            return pendingScreens;
         }
-        
-        return SETTINGS.getStatusResponse("400_SCRN_7");
-        
-        
+        pendingScreens.add(screenName);
+        return pendingScreens;
     }
 
     public JSONObject validateItems(JSONArray nodeOptions, JSONArray nodeItems) {
@@ -115,16 +134,16 @@ public class ScreenNode {
                     HashMap<String, String> nodeItem = new HashMap<>();
                     nodeItem.put("nextScreen", jsonNodeItem.getString("nextScreen"));
                     nodeItem.put("displayText", jsonNodeItem.getString("displayText"));
+                    setPendingScreens(jsonNodeItem.getString("nextScreen"));
                     this.nodeItems.add(nodeItem);
-                    
-                    
-                }else{
-                    return SETTINGS.getStatusResponse("400_SCRN_5");
-                }     
+
+                } else {
+                    return SETTINGS.getStatusResponse("400_SCRN_5", new HashMap());
+                }
             }
-            return new JSONObject();   
+            return new JSONObject();
         }
-        return SETTINGS.getStatusResponse("400_SCRN_4");
+        return SETTINGS.getStatusResponse("400_SCRN_4", new HashMap());
 
     }
 
@@ -147,15 +166,22 @@ public class ScreenNode {
         }
 
         if (getScreenType().equalsIgnoreCase("raw_input")) {
+            setPendingScreens(getScreenNext());
             return validateRawInput(jsonNodeOptions, jsonNodeItems);
         } else if (getScreenType().equalsIgnoreCase("options")) {
+            setPendingScreens(getScreenNext());
             return validateOptions(jsonNodeOptions, jsonNodeItems);
         } else if (getScreenType().equalsIgnoreCase("items")) {
             return validateItems(jsonNodeOptions, jsonNodeItems);
         } else {
-            return SETTINGS.getStatusResponse("400_SCRN_6");
+            return SETTINGS.getStatusResponse("400_SCRN_6", new HashMap());
         }
 
+    }
+
+    public JSONObject deleteScreen(Object data) {
+//        syncCommands.hdel(, ks);
+        return null;
     }
 
     public JSONObject mapedMap() {
@@ -163,7 +189,7 @@ public class ScreenNode {
         for (Field field : this.getClass().getDeclaredFields()) {
             String val = new String();
             String varname = field.getName();
-            if(varname.equalsIgnoreCase("SETTINGS") || varname.equalsIgnoreCase("syncCommands")){
+            if (varname.equalsIgnoreCase("SETTINGS") || varname.equalsIgnoreCase("database")) {
                 continue;
             }
             try {
@@ -176,4 +202,5 @@ public class ScreenNode {
         }
         return mapedMap;
     }
+
 }

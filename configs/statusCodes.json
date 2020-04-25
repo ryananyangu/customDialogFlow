@@ -7,5 +7,7 @@
     "400_SCRN_3": "Validation failed, options input has to define screen Next and have option and not items",
     "400_SCRN_4": "Validation failed, items input has to define screen Next and have items and not options",
     "404_ND": "Invalid Input",
-    "400_SCRN_7": "Duplicate screen name for the shortcode"
+    "400_SCRN_7": "Duplicate screen name for the shortcode",
+    "404_FLW_1" : "Flow Not found ",
+    "500_STS_3" : "System error retrieving data"
 }

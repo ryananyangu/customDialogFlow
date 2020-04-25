@@ -1,8 +1,14 @@
 package com.custom.dialog.lab.controller;
 
+import com.custom.dialog.lab.pojo.FlowGraph;
 import com.custom.dialog.lab.pojo.ScreenNode;
 import com.custom.dialog.lab.pojo.Session;
 import com.custom.dialog.lab.utils.Props;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,25 +23,48 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 public class DialogFlowController {
-    private static final Props SETTINGS = new Props();
-
-    @GetMapping(path = "/get/atussd/flow", consumes = "application/json", produces = "application/json")
+    
+    @GetMapping(path = "/get/atussd/flow", consumes = "application/json", produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam String msisdn, @RequestParam String session, @RequestParam String input) {
         Session session_menu = new Session(msisdn, session, input);
-        return new JSONObject(session_menu.getNodeData()).toString();
+        Map<String, Object> sessionData = new HashMap<>();
+        try {
+            sessionData = session_menu.retrieveData("sessions", session);
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        Map<String, Object> nextScreenData = session_menu.screenNavigate(sessionData);
+        return session_menu.displayText(nextScreenData);
     }
-
+    
     @ResponseBody
     @PostMapping(path = "/screen/create", consumes = "application/json", produces = "application/json")
     public String createScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
-
+        
         if (!screenNode.buildScreen(screen).isEmpty()) {
             return screenNode.buildScreen(screen).toString();
         }
-        String data = screenNode.prepareToRedis();
+        HashMap<String, Object> data = screenNode.prepareToRedis();
         return screenNode.saveRedisData(data).toString();
     }
+    
+    @GetMapping(path = "/get/flow", consumes = "application/json", produces = "application/json")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public String getFlow(@RequestParam String shortcode) {
+        FlowGraph flow = new FlowGraph();
+        return flow.getFlow(shortcode).toString();
+    }
+    
+//    @ResponseBody
+//    @PostMapping(path = "/screen/delete", consumes = "application/json", produces = "application/json")
+//    public String deleteScreen(@RequestBody Object screen) {
+//        ScreenNode screenNode = new ScreenNode();
+//        return screenNode.saveFireStore().toString();
+//    }
+    
 }

@@ -2,8 +2,11 @@ package com.custom.dialog.lab.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import lombok.Data;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -53,27 +56,29 @@ public class Props {
         return redis_host;
     }
 
-    public JSONObject getStatusResponse(String code) {
+    public JSONObject getStatusResponse(String code, Object data) {
 
-        JSONObject returnCode = new JSONObject();
+        HashMap<String,Object> returnCode = new HashMap<>();
         JSONObject statuses = new JSONObject();
         try {
             statuses = new JSONObject(statusCodes);
-        } catch (Exception e) {
+        } catch (JSONException e) {
 
             returnCode.put("statusCode", "500_STS_2");
             returnCode.put("message", "Internal Error StatusCodes not set correctly in file");
-            return returnCode;
+            return new JSONObject(returnCode);
         }
 
         if (statuses.has(code)) {
             returnCode.put("statusCode", code);
             returnCode.put("message", statuses.getString(code));
-            return returnCode;
+            returnCode.put("data", data);
+            return new JSONObject(returnCode);
         }
         returnCode.put("statusCode", "500_STS_1");
         returnCode.put("message", "Internal Error StatusCode not found in file");
-        return returnCode;
+        returnCode.put("data",data);
+        return new JSONObject(returnCode);
     }
 
     /**
