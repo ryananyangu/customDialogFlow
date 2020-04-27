@@ -2,12 +2,17 @@ package com.custom.dialog.lab.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import lombok.Data;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * Props
@@ -15,50 +20,28 @@ import org.json.JSONObject;
 @Data
 public class Props {
 
-    private Properties core;
-
     private String statusCodes;
-    private String redis_host;
-    private int redis_port;
-    private String redis_password;
+    private final static Logger LOGGER = Logger.getLogger(Props.class.getName());
 
     public Props() {
-        setProps();
         setup();
     }
 
-    private void setProps() {
-        File file = new File(System.getProperty("user.dir") + "/configs/app.properties");
-        core = new Properties();
-        try {
-            core.load(new FileInputStream(file));
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-
     private void setup() {
-        this.statusCodes = Utils.readFile(core.getProperty("custom.status.codes"));
-        this.redis_host = core.getProperty("redis.host");
-        this.redis_port = Integer.parseInt(core.getProperty("redis.port"));
-        this.redis_password = core.getProperty("redis.password");
-    }
-
-//    public String getFlowLoc(){
-//        return flowloc;
-//	}
-//	
-    /**
-     * @return the redis_host
-     */
-    public String getRedis_host() {
-        return redis_host;
+        ClassPathResource resource = new ClassPathResource("statusCodes.json");
+        try {
+            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            LOGGER.log(Level.INFO,
+                Utils.prelogString("",
+                        Utils.getCodelineNumber(), "Loaded status codes  " + statusCodes));
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 
     public JSONObject getStatusResponse(String code, Object data) {
 
-        HashMap<String,Object> returnCode = new HashMap<>();
+        HashMap<String, Object> returnCode = new HashMap<>();
         JSONObject statuses = new JSONObject();
         try {
             statuses = new JSONObject(statusCodes);
@@ -77,21 +60,7 @@ public class Props {
         }
         returnCode.put("statusCode", "500_STS_1");
         returnCode.put("message", "Internal Error StatusCode not found in file");
-        returnCode.put("data",data);
+        returnCode.put("data", data);
         return new JSONObject(returnCode);
-    }
-
-    /**
-     * @return the redis_port
-     */
-    public int getRedis_port() {
-        return redis_port;
-    }
-
-    /**
-     * @return the redis_password
-     */
-    public String getRedis_password() {
-        return redis_password;
     }
 }

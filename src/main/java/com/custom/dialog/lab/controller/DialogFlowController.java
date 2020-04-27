@@ -3,13 +3,11 @@ package com.custom.dialog.lab.controller;
 import com.custom.dialog.lab.pojo.FlowGraph;
 import com.custom.dialog.lab.pojo.ScreenNode;
 import com.custom.dialog.lab.pojo.Session;
-import com.custom.dialog.lab.utils.Props;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,19 +50,12 @@ public class DialogFlowController {
         return screenNode.saveRedisData(data).toString();
     }
     
-    @GetMapping(path = "/get/flow", consumes = "application/json", produces = "application/json")
+    @GetMapping(path = "/", consumes = "application/json", produces = "application/json")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String getFlow(@RequestParam String shortcode) {
         FlowGraph flow = new FlowGraph();
         return flow.getFlow(shortcode).toString();
     }
-    
-//    @ResponseBody
-//    @PostMapping(path = "/screen/delete", consumes = "application/json", produces = "application/json")
-//    public String deleteScreen(@RequestBody Object screen) {
-//        ScreenNode screenNode = new ScreenNode();
-//        return screenNode.saveFireStore().toString();
-//    }
-    
+        
 }

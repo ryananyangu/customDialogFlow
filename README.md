@@ -57,4 +57,4 @@
     3. if not root node : node name can be null hence the node name will be gotten from the NOde data list of parent
 
 ### Sample request Format
-http://localhost:8080/api/v1/get/flow?msisdn=254722000000&session=356789879&input=100
+https://dialogflw.uc.r.appspot.com/api/v1/get/atussd/flow?msisdn=254702079461&session=8794587&input=2

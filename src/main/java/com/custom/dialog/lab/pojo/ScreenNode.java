@@ -7,8 +7,6 @@ import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.FirestoreOptions;
-import com.google.cloud.firestore.WriteResult;
-import com.google.common.collect.ImmutableMap;
 import java.util.*;
 import lombok.Data;
 import java.lang.reflect.Field;
