@@ -21,11 +21,9 @@ public class Session {
     private final String phoneNumber;
     private final String sessionId;
     private final String input;
-    private final Firestore database;
-//    private 
+
 
     public Session(String phoneNumber, String sessionId, String Input) {
-        database = FirestoreOptions.getDefaultInstance().getService();
 
         this.phoneNumber = phoneNumber;
         this.sessionId = sessionId;
@@ -37,10 +35,18 @@ public class Session {
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
-        CollectionReference collectionReference = database.collection(collection);
-        DocumentReference documentReference = collectionReference.document(documentId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
+
+        DocumentSnapshot document;
+        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+
+            CollectionReference collectionReference = database.collection(collection);
+            DocumentReference documentReference = collectionReference.document(documentId);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            document = future.get();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            return new HashMap();
+        }
 
         if (!document.exists()) {
             LOGGER.log(Level.INFO,
@@ -76,7 +82,7 @@ public class Session {
 
         } else if (screenType.equalsIgnoreCase("items")) {
             List<HashMap> nodeItems = (List) currentScreenData.get("nodeItems");
-            String nextScreen = String.valueOf(nodeItems.get(Integer.parseInt(input)-1).get("nextScreen"));
+            String nextScreen = String.valueOf(nodeItems.get(Integer.parseInt(input) - 1).get("nextScreen"));
             return getNextScreenDetails(shortCode, nextScreen);
 
         } else {
@@ -166,11 +172,18 @@ public class Session {
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: " + data));
-        CollectionReference collectionReference = database.collection(collection);
+        DocumentSnapshot document;
+        DocumentReference documentReference;
+        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+            CollectionReference collectionReference = database.collection(collection);
 
-        DocumentReference documentReference = collectionReference.document(documentId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
+            documentReference = collectionReference.document(documentId);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            document = future.get();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            return false;
+        }
 
         if (!document.exists()) {
             // TODO: Check if collection exists
@@ -194,16 +207,24 @@ public class Session {
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: " + data));
-        CollectionReference collectionReference = database.collection(collection);
 
-        DocumentReference documentReference = collectionReference.document(documentId);
-        ApiFuture<DocumentSnapshot> future = documentReference.get();
-        DocumentSnapshot document = future.get();
+        DocumentSnapshot document;
+        DocumentReference documentReference;
+        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+            CollectionReference collectionReference = database.collection(collection);
+
+            documentReference = collectionReference.document(documentId);
+            ApiFuture<DocumentSnapshot> future = documentReference.get();
+            document = future.get();
+        } catch (Exception ex) {
+            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
 
         if (document.exists()) {
             // TODO: Check if collection exists
             documentReference.update(data);
-            
+
             LOGGER.log(Level.INFO,
                     Utils.prelogString(sessionId,
                             Utils.getCodelineNumber(), "Status from database update/save : " + true));
@@ -214,7 +235,6 @@ public class Session {
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Status from database update/save : " + false));
 
-        
         return false;
 
     }

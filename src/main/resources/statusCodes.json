@@ -1,6 +1,8 @@
 {
-    "200_SCRN": "Success",
+    "200_SCRN": "Confirmed successfull transaction",
+    "200_SCRN_1": "Data submitted for processing check status after 30 seconds",
     "400_SCRN_5": "Validation failed, items should contain both nextScreen and displayText key",
+    "404_SCRN_1": "Screen not found in submitted Flow",
     "400_SCRN_6": "Uknown Page type submitted",
     "400_SCRN_1": "Validation failed, Mandatory fields left empty",
     "400_SCRN_2": "Validation failed, Raw input has to define screen Next and not have option and items",

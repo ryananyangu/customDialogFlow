@@ -1,12 +1,9 @@
 package com.custom.dialog.lab.utils;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import lombok.Data;
@@ -30,10 +27,10 @@ public class Props {
     private void setup() {
         ClassPathResource resource = new ClassPathResource("statusCodes.json");
         try {
-            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            LOGGER.log(Level.INFO,
-                Utils.prelogString("",
-                        Utils.getCodelineNumber(), "Loaded status codes  " + statusCodes));
+            Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
+            this.statusCodes = s.hasNext() ? s.next() : "";
+//            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -42,7 +39,7 @@ public class Props {
     public JSONObject getStatusResponse(String code, Object data) {
 
         HashMap<String, Object> returnCode = new HashMap<>();
-        JSONObject statuses = new JSONObject();
+        JSONObject statuses;
         try {
             statuses = new JSONObject(statusCodes);
         } catch (JSONException e) {
