@@ -75,14 +75,7 @@ public class DialogFlowController {
     @PostMapping(path = "/flow/validate", consumes = "application/json", produces = "application/json")
     public String validateFlow(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
-
-
-        JSONObject validation;
-        try {
-            validation = screenNode.isValidFlow(screens, requiredScreens);
-        } catch (JSONException jex) {
-            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
-        }
+        JSONObject validation = screenNode.isValidFlow(screens);
 
         if (!validation.isEmpty()) {
             return validation.toString();
