@@ -38,13 +38,7 @@ public class DialogFlowController {
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam String msisdn, @RequestParam String session, @RequestParam String input) {
         Session session_menu = new Session(msisdn, session, input);
-        Map<String, Object> sessionData = new HashMap<>();
-        try {
-            sessionData = session_menu.retrieveData("sessions", session);
-        } catch (InterruptedException | ExecutionException ex) {
-            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        Map<String, Object> sessionData = session_menu.retrieveData("sessions", session);
         Map<String, Object> nextScreenData = session_menu.screenNavigate(sessionData);
         return session_menu.displayText(nextScreenData);
     }

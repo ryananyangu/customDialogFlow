@@ -16,7 +16,7 @@ import org.json.XML;
 /**
  * Utils
  */
-public class Utils {
+public final class Utils {
 
     private Utils() {
     }

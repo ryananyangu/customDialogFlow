@@ -1,14 +1,9 @@
 package com.custom.dialog.lab.pojo;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-// import static org.junit.jupiter.api.Assertions.asser;
-
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import java.util.*;
-
+import static org.junit.Assert.assertTrue;
 
 /**
  * ScreenModeTest
@@ -21,5 +16,10 @@ public class ScreenModeTest {
     public static void beforeAllTestMethods() {
 
     }
-  
+
+    @Test
+    public void shouldAnswerWithTrue() {
+        assertTrue(true);
+    }
+
 }

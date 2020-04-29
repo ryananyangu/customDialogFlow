@@ -141,30 +141,24 @@ public class Session {
         data.put("currentPage", screenNext);
         data.put("ExtraData", "");
 
-        try {
-            Map<String, Object> nextScreenData = retrieveData(shortCode, screenNext);
-            if (nextScreenData.isEmpty()) {
-                // document/screen does not exist
-                return new HashMap();
-            }
-            data.put("screenData", nextScreenData);
-            boolean isSuccess;
-            if ("start_page".equalsIgnoreCase(screenNext)) {
-                isSuccess = saveData(data, "sessions", sessionId);
-            } else {
-                isSuccess = updateData(data, "sessions", sessionId);
-            }
-
-            if (isSuccess) {
-                return nextScreenData;
-            }
-
-            // else session screen already associated to sessionID
-        } catch (InterruptedException | ExecutionException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-
+        Map<String, Object> nextScreenData = retrieveData(shortCode, screenNext);
+        if (nextScreenData.isEmpty()) {
+            // document/screen does not exist
+            return new HashMap();
+        }
+        data.put("screenData", nextScreenData);
+        boolean isSuccess;
+        if ("start_page".equalsIgnoreCase(screenNext)) {
+            isSuccess = saveData(data, "sessions", sessionId);
+        } else {
+            isSuccess = updateData(data, "sessions", sessionId);
         }
 
+        if (isSuccess) {
+            return nextScreenData;
+        }
+
+        // else session screen already associated to sessionID
         // found exception or Failed saving in database
         return new HashMap();
     }
