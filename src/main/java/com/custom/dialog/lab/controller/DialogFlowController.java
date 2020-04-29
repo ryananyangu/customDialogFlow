@@ -4,6 +4,7 @@ import com.custom.dialog.lab.pojo.FlowGraph;
 import com.custom.dialog.lab.pojo.ScreenNode;
 import com.custom.dialog.lab.pojo.Session;
 import com.custom.dialog.lab.utils.Props;
+import com.custom.dialog.lab.utils.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,8 +12,10 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "https://dialogflw.uc.r.appspot.com", allowedHeaders = "application/json")
+@CrossOrigin(origins = "https://dialogflw.uc.r.appspot.com", allowedHeaders = MediaType.APPLICATION_JSON_VALUE)
 @RequestMapping("/api/v1")
 public class DialogFlowController {
 
@@ -50,21 +53,29 @@ public class DialogFlowController {
     @PostMapping(path = "/screen/create", consumes = "application/json", produces = "application/json")
     public String createScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
-
-        if (!screenNode.buildScreen(screen).isEmpty()) {
-            return screenNode.buildScreen(screen).toString();
+        try {
+            if (!screenNode.buildScreen(screen).isEmpty()) {
+                return screenNode.buildScreen(screen).toString();
+            }
+        } catch (JSONException jex) {
+            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
         }
         HashMap<String, Object> data = screenNode.prepareToRedis();
-        return screenNode.saveRedisData(data, true).toString();
+        return screenNode.saveRedisData(data).toString();
     }
 
     @ResponseBody
-    @PostMapping(path = "/screen/bulk/create", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/screen/bulk/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public String bulkCreateScreen(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
         List<String> requiredScreens = new ArrayList<>();
         requiredScreens.add("start_page");
-        JSONObject validation = screenNode.isValidFlow(screens, requiredScreens);
+        JSONObject validation;
+        try {
+            validation = screenNode.isValidFlow(screens, requiredScreens);
+        } catch (JSONException jex) {
+            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
+        }
         if (!validation.isEmpty()) {
             return validation.toString();
         }
@@ -79,7 +90,13 @@ public class DialogFlowController {
 
         List<String> requiredScreens = new ArrayList<>();
         requiredScreens.add("start_page");
-        JSONObject validation = screenNode.isValidFlow(screens, requiredScreens);
+        JSONObject validation;
+        try {
+            validation = screenNode.isValidFlow(screens, requiredScreens);
+        } catch (JSONException jex) {
+            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
+        }
+
         if (!validation.isEmpty()) {
             return validation.toString();
         }

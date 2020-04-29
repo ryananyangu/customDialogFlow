@@ -12,9 +12,11 @@ import com.google.cloud.firestore.WriteResult;
 import java.util.*;
 import lombok.Data;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 @Data
@@ -85,42 +87,33 @@ public class ScreenNode {
         return nodeData;
     }
 
-    public JSONObject saveRedisData(Map<String, Object> data, boolean isSync) {
+    public JSONObject saveRedisData(Map<String, Object> data) {
         DocumentSnapshot document;
         DocumentReference documentReference;
         ApiFuture<DocumentSnapshot> future;
         try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+
             CollectionReference collectionReference = database.collection(data.get("shortCode").toString());
 
             documentReference = collectionReference.document(data.get("nodeName").toString());
+
             future = documentReference.get();
+            document = future.get(10, TimeUnit.SECONDS);
 
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            if (ex instanceof InterruptedException) {
-                return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >>" + ex.getLocalizedMessage());
-            }
             return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >>" + ex.getLocalizedMessage());
-        }
-
-        
-        try {
-            document = future.get();
-        } catch (InterruptedException | ExecutionException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-
-            return SETTINGS.getStatusResponse("200_SCRN_1", data);
         }
 
         if (!document.exists()) {
             data.remove("nodeName");
             documentReference.set(data);
-            if(isSync){
-                documentReference.get();
-            }            
+
+            documentReference.get();
             return SETTINGS.getStatusResponse("200_SCRN", data);
         }
-
+        LOGGER.log(Level.INFO,
+                Utils.prelogString(shortCode,
+                        Utils.getCodelineNumber(), "Status from database update/save : " + true));
         return SETTINGS.getStatusResponse("400_SCRN_7", data);
 
     }
@@ -146,7 +139,7 @@ public class ScreenNode {
 
     }
 
-    public JSONObject buildScreen(Object node) {
+    public JSONObject buildScreen(Object node) throws JSONException {
 
         JSONObject jsonNode = new JSONObject((HashMap) node);
         JSONArray jsonNodeOptions = jsonNode.getJSONArray("nodeOptions");
@@ -178,7 +171,8 @@ public class ScreenNode {
 
     }
 
-    public JSONObject isValidFlow(Object screens, List<String> requiredScreens) {
+    public JSONObject isValidFlow(Object screens, List<String> requiredScreens) throws JSONException {
+
         HashMap<String, HashMap<String, Object>> screenBulk = (HashMap<String, HashMap<String, Object>>) screens;
         while (!requiredScreens.isEmpty()) {
             String screen = requiredScreens.get(0);
@@ -187,8 +181,7 @@ public class ScreenNode {
             if (!screenBulk.containsKey(screen)) {
                 return SETTINGS.getStatusResponse("404_SCRN_1", screen);
             }
-            
-            
+
             // structure validate and set vars for obj
             HashMap<String, Object> node = screenBulk.get(screen);
             node.put("nodeName", screen);
@@ -204,13 +197,13 @@ public class ScreenNode {
                 List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen.get("nodeItems");
                 nodeItemsValid.forEach((item) -> {
                     String nextScreen = item.get("nextScreen");
-                    if (!(nextScreen.equalsIgnoreCase("end"))) {
+                    if (!"end".equalsIgnoreCase(nextScreen)) {
                         requiredScreens.add(item.get("nextScreen"));
                     }
                 });
             } else {
                 String nextScreen = currentScreen.get("screenNext").toString();
-                if (!nextScreen.equalsIgnoreCase("end")) {
+                if (!"end".equalsIgnoreCase(nextScreen)) {
                     requiredScreens.add(nextScreen);
                 }
 
@@ -226,15 +219,14 @@ public class ScreenNode {
 
     public void bulkSave() {
         Firestore database = FirestoreOptions.getDefaultInstance().getService();
-        
+
         screenData.forEach((data) -> {
             CollectionReference flow = database.collection(data.get("shortCode").toString());
             String screen = data.get("nodeName").toString();
             data.remove("nodeName");
             validatedScreens.add(flow.document(screen).set(data));
         });
-        
-        
+
     }
-    
+
 }

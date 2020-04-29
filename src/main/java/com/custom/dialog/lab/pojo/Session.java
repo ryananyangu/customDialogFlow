@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,29 +23,29 @@ public class Session {
     private final String phoneNumber;
     private final String sessionId;
     private final String input;
-
+    Firestore database;
 
     public Session(String phoneNumber, String sessionId, String Input) {
-
+        database = FirestoreOptions.getDefaultInstance().getService();
         this.phoneNumber = phoneNumber;
         this.sessionId = sessionId;
         this.input = Input;
     }
 
-    public Map retrieveData(String collection, String documentId) throws InterruptedException, ExecutionException {
+    public Map retrieveData(String collection, String documentId) {
 
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
 
         DocumentSnapshot document;
-        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+        try {
 
             CollectionReference collectionReference = database.collection(collection);
             DocumentReference documentReference = collectionReference.document(documentId);
             ApiFuture<DocumentSnapshot> future = documentReference.get();
-            document = future.get();
-        } catch (Exception ex) {
+            document = future.get(10, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             return new HashMap();
         }
@@ -75,12 +77,12 @@ public class Session {
         String shortCode = String.valueOf(sessionData.get("shortCode"));
 
         // session already existed
-        if (screenType.equalsIgnoreCase("raw_input") || screenType.equalsIgnoreCase("options")) {
+        if ("raw_input".equalsIgnoreCase(screenType) || "options".equalsIgnoreCase(screenType)) {
             String screenNext = String.valueOf(currentScreenData.get("nextScreen"));
 
             return getNextScreenDetails(shortCode, screenNext);
 
-        } else if (screenType.equalsIgnoreCase("items")) {
+        } else if ("items".equalsIgnoreCase(screenType)) {
             List<HashMap> nodeItems = (List) currentScreenData.get("nodeItems");
             String nextScreen = String.valueOf(nodeItems.get(Integer.parseInt(input) - 1).get("nextScreen"));
             return getNextScreenDetails(shortCode, nextScreen);
@@ -105,9 +107,9 @@ public class Session {
 
         String screenType = String.valueOf(screenData.get("screenType"));
         String screenText = String.valueOf(screenData.get("screenText"));
-        if (screenType.equalsIgnoreCase("raw_input")) {
+        if ("raw_input".equalsIgnoreCase(screenType)) {
             return screenText;
-        } else if (screenType.equalsIgnoreCase("items")) {
+        } else if ("items".equalsIgnoreCase(screenType)) {
 
             List<HashMap> nodeItems = (List) screenData.get("nodeItems");
             int count = 1;
@@ -147,7 +149,7 @@ public class Session {
             }
             data.put("screenData", nextScreenData);
             boolean isSuccess;
-            if (screenNext.equalsIgnoreCase("start_page")) {
+            if ("start_page".equalsIgnoreCase(screenNext)) {
                 isSuccess = saveData(data, "sessions", sessionId);
             } else {
                 isSuccess = updateData(data, "sessions", sessionId);
@@ -167,73 +169,33 @@ public class Session {
         return new HashMap();
     }
 
-    public boolean saveData(Map<String, Object> data, String collection, String documentId) throws InterruptedException, ExecutionException {
+    public boolean saveData(Map<String, Object> data, String collection, String documentId) {
 
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Data submitted to function :: " + data));
-        DocumentSnapshot document;
-        DocumentReference documentReference;
-        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
-            CollectionReference collectionReference = database.collection(collection);
+        CollectionReference collectionReference = database.collection(collection);
+        DocumentReference documentReference = collectionReference.document(documentId);
 
-            documentReference = collectionReference.document(documentId);
-            ApiFuture<DocumentSnapshot> future = documentReference.get();
-            document = future.get();
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            return false;
-        }
+        Map docData = retrieveData(collection, documentId);
 
-        if (!document.exists()) {
-            // TODO: Check if collection exists
+        if (docData.isEmpty()) {
             documentReference.set(data);
-            documentReference.update(data);
-            LOGGER.log(Level.INFO,
-                    Utils.prelogString(sessionId,
-                            Utils.getCodelineNumber(), "Status from database update/save : " + true));
             return true;
         }
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Status from database update/save : " + false));
-        // log duplicate screen
+
         return false;
 
     }
 
-    private boolean updateData(HashMap<String, Object> data, String collection, String documentId) throws InterruptedException, ExecutionException {
+    private boolean updateData(HashMap<String, Object> data, String collection, String documentId) {
 
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Data submitted to function :: " + data));
+        CollectionReference collectionReference = database.collection(collection);
+        DocumentReference documentReference = collectionReference.document(documentId);
 
-        DocumentSnapshot document;
-        DocumentReference documentReference;
-        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
-            CollectionReference collectionReference = database.collection(collection);
+        Map docData = retrieveData(collection, documentId);
 
-            documentReference = collectionReference.document(documentId);
-            ApiFuture<DocumentSnapshot> future = documentReference.get();
-            document = future.get();
-        } catch (Exception ex) {
-            Logger.getLogger(Session.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
-
-        if (document.exists()) {
-            // TODO: Check if collection exists
+        if (docData.isEmpty()) {
             documentReference.update(data);
-
-            LOGGER.log(Level.INFO,
-                    Utils.prelogString(sessionId,
-                            Utils.getCodelineNumber(), "Status from database update/save : " + true));
             return true;
         }
-
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Status from database update/save : " + false));
 
         return false;
 

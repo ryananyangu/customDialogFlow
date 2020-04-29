@@ -18,6 +18,11 @@ import org.json.XML;
  */
 public class Utils {
 
+    private Utils() {
+    }
+    
+    
+
     public static String prelogString(String identifier, int lineNumber, String logMessage) {
         String method = Thread.currentThread().getStackTrace()[2].getMethodName();
         return " METHOD >> " + method + " | LINE >> " + lineNumber + " | IDENTIFIER >> " 
@@ -30,8 +35,7 @@ public class Utils {
      * @return lineNumber
      */
     public static int getCodelineNumber() {
-        int lineNumber = Thread.currentThread().getStackTrace()[2].getLineNumber();
-        return lineNumber;
+        return Thread.currentThread().getStackTrace()[2].getLineNumber();
     }
 
     /**
@@ -61,8 +65,7 @@ public class Utils {
      * @return
      */
     public static JSONObject xmlToJson(String xmlString) {
-        JSONObject xmlJSONObj = XML.toJSONObject(xmlString);
-        return xmlJSONObj;
+        return XML.toJSONObject(xmlString);
     }
 
     /**
@@ -80,8 +83,7 @@ public class Utils {
         } catch (IOException e) {
             throw new IllegalArgumentException("Path not found : " + e.getMessage());
         }
-        String tmplt = new String(encoded, StandardCharsets.UTF_8);
-        return tmplt;
+        return new String(encoded, StandardCharsets.UTF_8);
     }
     // StandardCharsets.UTF_8
 
@@ -105,8 +107,8 @@ public class Utils {
     public static String curdateToString() {
         DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date today = Calendar.getInstance().getTime();
-        String reportDate = df.format(today);
-        return reportDate;
+        return df.format(today);
+        
     }
 
     public static int randomGen(int min, int max) {
