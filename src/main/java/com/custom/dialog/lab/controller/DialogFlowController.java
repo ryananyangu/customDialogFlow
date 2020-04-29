@@ -62,14 +62,8 @@ public class DialogFlowController {
     @PostMapping(path = "/screen/bulk/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public String bulkCreateScreen(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
-        List<String> requiredScreens = new ArrayList<>();
-        requiredScreens.add("start_page");
-        JSONObject validation;
-        try {
-            validation = screenNode.isValidFlow(screens, requiredScreens);
-        } catch (JSONException jex) {
-            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
-        }
+        JSONObject validation = screenNode.isValidFlow(screens);
+
         if (!validation.isEmpty()) {
             return validation.toString();
         }
@@ -82,8 +76,7 @@ public class DialogFlowController {
     public String validateFlow(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
 
-        List<String> requiredScreens = new ArrayList<>();
-        requiredScreens.add("start_page");
+
         JSONObject validation;
         try {
             validation = screenNode.isValidFlow(screens, requiredScreens);

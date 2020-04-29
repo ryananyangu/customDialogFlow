@@ -139,18 +139,22 @@ public class ScreenNode {
 
     }
 
-    public JSONObject buildScreen(Object node) throws JSONException {
+    public JSONObject buildScreen(Object node) {
 
         JSONObject jsonNode = new JSONObject((HashMap) node);
         JSONArray jsonNodeOptions = jsonNode.getJSONArray("nodeOptions");
         JSONArray jsonNodeItems = jsonNode.getJSONArray("nodeItems");
 
+        try{
         setScreenActive(jsonNode.getBoolean("isScreenActive"));
         setScreenNext(jsonNode.getString("screenNext"));
         setNodeName(jsonNode.getString("nodeName"));
         setScreenText(jsonNode.getString("screenText"));
         setScreenType(jsonNode.getString("screenType"));
         setShortCode(jsonNode.getString("shortCode"));
+        }catch(JSONException jex){
+            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage());
+        }
 
         // validate mandatory
         if (!validate().isEmpty()) {
@@ -171,9 +175,12 @@ public class ScreenNode {
 
     }
 
-    public JSONObject isValidFlow(Object screens, List<String> requiredScreens) throws JSONException {
+    public JSONObject isValidFlow(Object screens) throws JSONException {
 
         HashMap<String, HashMap<String, Object>> screenBulk = (HashMap<String, HashMap<String, Object>>) screens;
+        List<String> requiredScreens = new ArrayList<>();
+        requiredScreens.add("start_page");
+
         while (!requiredScreens.isEmpty()) {
             String screen = requiredScreens.get(0);
 
