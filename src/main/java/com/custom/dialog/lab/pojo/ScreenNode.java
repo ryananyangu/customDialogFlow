@@ -3,17 +3,9 @@ package com.custom.dialog.lab.pojo;
 import com.custom.dialog.lab.utils.Props;
 import com.custom.dialog.lab.utils.Utils;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.WriteResult;
 import java.util.*;
 import lombok.Data;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +28,7 @@ public class ScreenNode {
     List<ApiFuture<WriteResult>> validatedScreens = new ArrayList<>();
     List<HashMap> screenData = new ArrayList<>();
     private String shortCode = new String();
+    private final Database database = new Database();
 
     public JSONObject validate() {
         /**
@@ -87,33 +80,16 @@ public class ScreenNode {
         return nodeData;
     }
 
-    public JSONObject saveRedisData(Map<String, Object> data) {
-        DocumentSnapshot document;
-        DocumentReference documentReference;
-        ApiFuture<DocumentSnapshot> future;
-        try (Firestore database = FirestoreOptions.getDefaultInstance().getService()) {
+    public JSONObject saveRedisData(Object data) {
+        if (!buildScreen(data).isEmpty()) {
+            return buildScreen(data);
 
-            CollectionReference collectionReference = database.collection(data.get("shortCode").toString());
-
-            documentReference = collectionReference.document(data.get("nodeName").toString());
-
-            future = documentReference.get();
-            document = future.get(10, TimeUnit.SECONDS);
-
-        } catch (Exception ex) {
-            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >>" + ex.getLocalizedMessage());
         }
 
-        if (!document.exists()) {
-            data.remove("nodeName");
-            documentReference.set(data);
-
-            documentReference.get();
-            return SETTINGS.getStatusResponse("200_SCRN", data);
+        boolean isSuccess = database.saveData(prepareToRedis(), shortCode, nodeName);
+        if (isSuccess) {
+            return SETTINGS.getStatusResponse("200_SCRN_1", data);
         }
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(shortCode,
-                        Utils.getCodelineNumber(), "Status from database update/save : " + true));
         return SETTINGS.getStatusResponse("400_SCRN_7", data);
 
     }
@@ -145,14 +121,14 @@ public class ScreenNode {
         JSONArray jsonNodeOptions = jsonNode.getJSONArray("nodeOptions");
         JSONArray jsonNodeItems = jsonNode.getJSONArray("nodeItems");
 
-        try{
-        setScreenActive(jsonNode.getBoolean("isScreenActive"));
-        setScreenNext(jsonNode.getString("screenNext"));
-        setNodeName(jsonNode.getString("nodeName"));
-        setScreenText(jsonNode.getString("screenText"));
-        setScreenType(jsonNode.getString("screenType"));
-        setShortCode(jsonNode.getString("shortCode"));
-        }catch(JSONException jex){
+        try {
+            setScreenActive(jsonNode.getBoolean("isScreenActive"));
+            setScreenNext(jsonNode.getString("screenNext"));
+            setNodeName(jsonNode.getString("nodeName"));
+            setScreenText(jsonNode.getString("screenText"));
+            setScreenType(jsonNode.getString("screenType"));
+            setShortCode(jsonNode.getString("shortCode"));
+        } catch (JSONException jex) {
             return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage());
         }
 
@@ -175,7 +151,7 @@ public class ScreenNode {
 
     }
 
-    public JSONObject isValidFlow(Object screens) throws JSONException {
+    public JSONObject isValidFlow(Object screens) {
 
         HashMap<String, HashMap<String, Object>> screenBulk = (HashMap<String, HashMap<String, Object>>) screens;
         List<String> requiredScreens = new ArrayList<>();
@@ -224,16 +200,111 @@ public class ScreenNode {
 
     }
 
-    public void bulkSave() {
-        Firestore database = FirestoreOptions.getDefaultInstance().getService();
-
-        screenData.forEach((data) -> {
-            CollectionReference flow = database.collection(data.get("shortCode").toString());
+    public JSONObject bulkSave() {
+        for (HashMap data : screenData) {
             String screen = data.get("nodeName").toString();
             data.remove("nodeName");
-            validatedScreens.add(flow.document(screen).set(data));
-        });
+            boolean isSuccess = database.saveData(data, data.get("shortCode").toString(), screen);
+            if (!isSuccess) {
+                return SETTINGS.getStatusResponse("400_SCRN_7", data);
+            }
+        }
 
+        return SETTINGS.getStatusResponse("200_SCRN_1", new HashMap());
+
+    }
+
+    public JSONObject updateScreen(Object data) {
+
+        if (!buildScreen(data).isEmpty()) {
+            return buildScreen(data);
+
+        }
+        boolean isSuccess = database.updateData(prepareToRedis(), shortCode, nodeName);
+        if (isSuccess) {
+            return SETTINGS.getStatusResponse("200_SCRN_1", data);
+        }
+        return SETTINGS.getStatusResponse("400_SCRN_7", data);
+
+    }
+
+    public JSONObject deleteData(Object data) {
+        HashMap<String, String> request = (HashMap) data;
+        if (!request.containsKey("shortCode") || !request.containsKey("nodeName")
+                || request.keySet().size() != 2) {
+            return SETTINGS.getStatusResponse("400", data);
+        }
+        setShortCode(request.get("shortCode"));
+        setNodeName(request.get("nodeName"));
+        boolean isSuccess = database.deleteData(shortCode, nodeName, true);
+        if (!isSuccess) {
+            return SETTINGS.getStatusResponse("400_SCRN_7", data);
+
+        }
+
+        HashMap<String, Object> flow = database.retrieveDataList(shortCode);
+        if (flow.isEmpty()) {
+            
+            // deleted node was root node
+            return SETTINGS.getStatusResponse("200_SCRN_1", flow);
+        }
+
+        HashMap<String, Object> orphanNodes = internalFlowValidation(flow);
+
+        if (orphanNodes.isEmpty()) {
+            return SETTINGS.getStatusResponse("200_SCRN_1", data);
+        }
+
+        // deleting extra orphaned nodes
+        orphanNodes.keySet().forEach((key) -> {
+            database.deleteData(shortCode, key, false);
+        });
+        return SETTINGS.getStatusResponse("200_SCRN_1", data);
+    }
+
+    public HashMap internalFlowValidation(HashMap<String, Object> flow) {
+        List<String> requiredScreens = new ArrayList<>();
+        requiredScreens.add("start_page");
+
+        while (!requiredScreens.isEmpty()) {
+            String screen = requiredScreens.get(0);
+
+            // check if screen is valid
+            if (!flow.containsKey(screen)) {
+                requiredScreens.remove(screen);
+                continue;
+            }
+
+            HashMap<String, Object> currentScreen = (HashMap<String, Object>) flow.get(screen);
+            if (currentScreen.get("screenType").toString().equalsIgnoreCase("items")) {
+                List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen.get("nodeItems");
+                nodeItemsValid.forEach((item) -> {
+                    String nextScreen = item.get("nextScreen");
+                    if (!"end".equalsIgnoreCase(nextScreen)) {
+                        requiredScreens.add(item.get("nextScreen"));
+                    }
+                });
+            } else {
+                String nextScreen = currentScreen.get("screenNext").toString();
+                if (!"end".equalsIgnoreCase(nextScreen)) {
+                    requiredScreens.add(nextScreen);
+                }
+
+            }
+
+            flow.remove(screen);
+            requiredScreens.remove(screen);
+        }
+        return flow;
+
+    }
+
+    public JSONObject getFlow(String shortcode) {
+        HashMap<String, Object> flow = database.retrieveDataList(shortcode);
+        if (flow.isEmpty()) {
+            return SETTINGS.getStatusResponse("404_FLW_1", flow);
+        }
+        return new JSONObject(flow);
     }
 
 }

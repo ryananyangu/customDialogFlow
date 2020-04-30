@@ -1,18 +1,9 @@
 package com.custom.dialog.lab.controller;
 
-import com.custom.dialog.lab.pojo.FlowGraph;
 import com.custom.dialog.lab.pojo.ScreenNode;
 import com.custom.dialog.lab.pojo.Session;
 import com.custom.dialog.lab.utils.Props;
-import com.custom.dialog.lab.utils.Utils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,10 +27,10 @@ public class DialogFlowController {
     @GetMapping(path = "/get/atussd/flow", consumes = "application/json", produces = "text/html")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String sessionNavigator(@RequestParam String msisdn, @RequestParam String session, @RequestParam String input) {
+    public String sessionNavigator(@RequestParam String msisdn,
+            @RequestParam String session, @RequestParam String input) {
         Session session_menu = new Session(msisdn, session, input);
-        Map<String, Object> sessionData = session_menu.retrieveData("sessions", session);
-        Map<String, Object> nextScreenData = session_menu.screenNavigate(sessionData);
+        Map<String, Object> nextScreenData = session_menu.screenNavigate();
         return session_menu.displayText(nextScreenData);
     }
 
@@ -47,15 +38,21 @@ public class DialogFlowController {
     @PostMapping(path = "/screen/create", consumes = "application/json", produces = "application/json")
     public String createScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
-        try {
-            if (!screenNode.buildScreen(screen).isEmpty()) {
-                return screenNode.buildScreen(screen).toString();
-            }
-        } catch (JSONException jex) {
-            return SETTINGS.getStatusResponse("500_STS_3", Utils.getCodelineNumber() + " >> " + jex.getMessage()).toString();
-        }
-        HashMap<String, Object> data = screenNode.prepareToRedis();
-        return screenNode.saveRedisData(data).toString();
+        return screenNode.saveRedisData(screen).toString();
+    }
+
+    @ResponseBody
+    @PostMapping(path = "/screen/delete", consumes = "application/json", produces = "application/json")
+    public String deleteScreen(@RequestBody Object screen) {
+        ScreenNode screenNode = new ScreenNode();
+        return screenNode.deleteData(screen).toString();
+    }
+
+    @ResponseBody
+    @PostMapping(path = "/screen/update", consumes = "application/json", produces = "application/json")
+    public String updateScreen(@RequestBody Object screen) {
+        ScreenNode screenNode = new ScreenNode();
+        return screenNode.updateScreen(screen).toString();
     }
 
     @ResponseBody
@@ -67,8 +64,7 @@ public class DialogFlowController {
         if (!validation.isEmpty()) {
             return validation.toString();
         }
-        screenNode.bulkSave();
-        return SETTINGS.getStatusResponse("200_SCRN_1", screens).toString();
+        return screenNode.bulkSave().toString();
     }
 
     @ResponseBody
@@ -87,8 +83,8 @@ public class DialogFlowController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String getFlow(@RequestParam String shortcode) {
-        FlowGraph flow = new FlowGraph();
-        return flow.getFlow(shortcode).toString();
+        ScreenNode screenNode = new ScreenNode();
+        return screenNode.getFlow(shortcode).toString();
     }
 
 }

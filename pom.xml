@@ -159,7 +159,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter</artifactId>
-            <version>1.0.0.RELEASE</version>
+            <version>1.2.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -191,11 +191,11 @@
             <artifactId>json</artifactId>
             <version>20190722</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter</artifactId>
-            <version>1.2.2.RELEASE</version>
-        </dependency>
+            <version></version>
+        </dependency>-->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

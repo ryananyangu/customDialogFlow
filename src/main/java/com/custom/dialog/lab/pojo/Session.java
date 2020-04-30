@@ -1,66 +1,32 @@
 package com.custom.dialog.lab.pojo;
 
 import com.custom.dialog.lab.utils.Utils;
-import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.CollectionReference;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.FirestoreOptions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Session {
 
     private final static Logger LOGGER = Logger.getLogger(Session.class.getName());
-
+    private final Database database = new Database();
     private final String phoneNumber;
     private final String sessionId;
     private final String input;
-    Firestore database;
+    
 
     public Session(String phoneNumber, String sessionId, String Input) {
-        database = FirestoreOptions.getDefaultInstance().getService();
         this.phoneNumber = phoneNumber;
         this.sessionId = sessionId;
         this.input = Input;
     }
 
-    public Map retrieveData(String collection, String documentId) {
 
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
 
-        DocumentSnapshot document;
-        try {
-
-            CollectionReference collectionReference = database.collection(collection);
-            DocumentReference documentReference = collectionReference.document(documentId);
-            ApiFuture<DocumentSnapshot> future = documentReference.get();
-            document = future.get(10, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            return new HashMap();
-        }
-
-        if (!document.exists()) {
-            LOGGER.log(Level.INFO,
-                    Utils.prelogString(sessionId,
-                            Utils.getCodelineNumber(), "Document Does not exist"));
-            return new HashMap<>();
-        }
-
-        return document.getData();
-    }
-
-    public Map screenNavigate(Map<String, Object> sessionData) {
+    public Map screenNavigate() {
+        
+        Map<String, Object> sessionData = database.retrieveData("sessions", sessionId);
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: " + sessionData),
@@ -141,17 +107,21 @@ public class Session {
         data.put("currentPage", screenNext);
         data.put("ExtraData", "");
 
-        Map<String, Object> nextScreenData = retrieveData(shortCode, screenNext);
+        Map<String, Object> nextScreenData = database.retrieveData(shortCode, screenNext);
+        
+        
         if (nextScreenData.isEmpty()) {
             // document/screen does not exist
             return new HashMap();
         }
+        
+        // set extra data here
         data.put("screenData", nextScreenData);
         boolean isSuccess;
         if ("start_page".equalsIgnoreCase(screenNext)) {
-            isSuccess = saveData(data, "sessions", sessionId);
+            isSuccess = database.saveData(data, "sessions", sessionId);
         } else {
-            isSuccess = updateData(data, "sessions", sessionId);
+            isSuccess = database.updateData(data, "sessions", sessionId);
         }
 
         if (isSuccess) {
@@ -162,37 +132,4 @@ public class Session {
         // found exception or Failed saving in database
         return new HashMap();
     }
-
-    public boolean saveData(Map<String, Object> data, String collection, String documentId) {
-
-        CollectionReference collectionReference = database.collection(collection);
-        DocumentReference documentReference = collectionReference.document(documentId);
-
-        Map docData = retrieveData(collection, documentId);
-
-        if (docData.isEmpty()) {
-            documentReference.set(data);
-            return true;
-        }
-
-        return false;
-
-    }
-
-    private boolean updateData(HashMap<String, Object> data, String collection, String documentId) {
-
-        CollectionReference collectionReference = database.collection(collection);
-        DocumentReference documentReference = collectionReference.document(documentId);
-
-        Map docData = retrieveData(collection, documentId);
-
-        if (docData.isEmpty()) {
-            documentReference.update(data);
-            return true;
-        }
-
-        return false;
-
-    }
-
 }

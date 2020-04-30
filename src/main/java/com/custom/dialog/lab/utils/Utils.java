@@ -24,8 +24,7 @@ public final class Utils {
     
 
     public static String prelogString(String identifier, int lineNumber, String logMessage) {
-        String method = Thread.currentThread().getStackTrace()[2].getMethodName();
-        return " METHOD >> " + method + " | LINE >> " + lineNumber + " | IDENTIFIER >> " 
+        return " | LINE >> " + lineNumber + " | IDENTIFIER >> " 
                 + identifier + " | MESSAGE >> " + logMessage;
     }
 
