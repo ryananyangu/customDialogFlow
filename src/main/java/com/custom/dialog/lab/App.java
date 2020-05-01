@@ -2,7 +2,6 @@ package com.custom.dialog.lab;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -20,15 +19,15 @@ public class App extends SpringBootServletInitializer {
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(App.class);
     }
-    
+
     @Bean
-    public WebMvcConfigurer corsConfigurer(){
+    public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry){
-                registry.addMapping("/api/v1/?shortcode").allowedOrigins("http://localhost:3000");
-                registry.addMapping("/api/v1/get/atussd/flow").allowedOrigins("http://localhost:3000");
-                
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedOrigins("*").allowedOrigins("*")
+                        .allowedHeaders("*");
+
             }
         };
     }

@@ -18,12 +18,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@CrossOrigin(origins = "*")
+@RequestMapping(path = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DialogFlowController {
 
     private static final Props SETTINGS = new Props();
 
-    @GetMapping(path = "/get/atussd/flow", consumes = "application/json", produces = "text/html")
+    @GetMapping(path = "/get/atussd/flow", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam String msisdn,
@@ -34,28 +35,28 @@ public class DialogFlowController {
     }
 
     @ResponseBody
-    @PostMapping(path = "/screen/create", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/screen/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String createScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
         return screenNode.saveRedisData(screen).toString();
     }
 
     @ResponseBody
-    @PostMapping(path = "/screen/delete", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/screen/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String deleteScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
         return screenNode.deleteData(screen).toString();
     }
 
     @ResponseBody
-    @PostMapping(path = "/screen/update", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/screen/update", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String updateScreen(@RequestBody Object screen) {
         ScreenNode screenNode = new ScreenNode();
         return screenNode.updateScreen(screen).toString();
     }
 
     @ResponseBody
-    @PostMapping(path = "/screen/bulk/create", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/screen/bulk/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String bulkCreateScreen(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
         JSONObject validation = screenNode.isValidFlow(screens);
@@ -67,7 +68,7 @@ public class DialogFlowController {
     }
 
     @ResponseBody
-    @PostMapping(path = "/flow/validate", consumes = "application/json", produces = "application/json")
+    @PostMapping(path = "/flow/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String validateFlow(@RequestBody Object screens) {
         ScreenNode screenNode = new ScreenNode();
         JSONObject validation = screenNode.isValidFlow(screens);
@@ -78,7 +79,7 @@ public class DialogFlowController {
         return SETTINGS.getStatusResponse("200_SCRN", screens).toString();
     }
 
-    @GetMapping(path = "/", consumes = "application/json", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/",produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String getFlow(@RequestParam String shortcode) {
