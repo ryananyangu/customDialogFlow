@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "https://dialogflw.uc.r.appspot.com", allowedHeaders = MediaType.APPLICATION_JSON_VALUE)
 @RequestMapping("/api/v1")
 public class DialogFlowController {
 
@@ -79,7 +78,7 @@ public class DialogFlowController {
         return SETTINGS.getStatusResponse("200_SCRN", screens).toString();
     }
 
-    @GetMapping(path = "/", consumes = "application/json", produces = "application/json")
+    @GetMapping(path = "/", consumes = "application/json", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String getFlow(@RequestParam String shortcode) {
