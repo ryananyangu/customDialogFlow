@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -31,12 +32,14 @@ import java.util.logging.Logger;
  */
 public class Database {
 
-    private final Firestore database;
+    @Autowired
+    private Firestore database;
+    
     private final static Logger LOGGER = Logger.getLogger(Database.class.getName());
 
-    public Database() {
-        database = FirestoreOptions.getDefaultInstance().getService();
-    }
+//    public Database() {
+//        database = FirestoreOptions. getDefaultInstance().getService();
+//    }
 
     public boolean updateData(HashMap<String, Object> data, String collection, String documentId) {
 

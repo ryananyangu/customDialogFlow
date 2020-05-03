@@ -1,6 +1,7 @@
 package com.custom.dialog.lab;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -8,7 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@SpringBootApplication
+@EnableAutoConfiguration 
+@SpringBootApplication(scanBasePackages = "com.custom.dialog.configs")
 public class App extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
@@ -25,7 +27,7 @@ public class App extends SpringBootServletInitializer {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**").allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS").allowedOrigins("*").allowedOrigins("*")
+                registry.addMapping("/api/**").allowedMethods("GET", "POST", "PUT", "DELETE").allowedOrigins("*").allowedOrigins("*")
                         .allowedHeaders("*");
 
             }
