@@ -11,6 +11,7 @@ import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
@@ -23,18 +24,17 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+
 
 /**
  *
  * @author jovixe
  */
-@Component
+
 public class Database {
 
     @Autowired
-    Firestore firestore;
+    Firestore firestore = FirestoreOptions.getDefaultInstance().getService();
 
     private final static Logger LOGGER = Logger.getLogger(Database.class.getName());
 

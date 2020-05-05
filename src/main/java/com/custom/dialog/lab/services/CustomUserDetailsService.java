@@ -29,6 +29,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         
         CustomUser user = userRepository.findById(username).block();
+        if(user.getEmail() == null || user.getPassword() == null){
+            throw  new UsernameNotFoundException("Username invalid");
+        }
         return new User(user.getEmail(), user.getPassword(), new ArrayList<>());
     }
 

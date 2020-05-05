@@ -21,18 +21,20 @@ and open the template in the editor.
             <param-name>contextConfigLocation</param-name>
             <param-value>/WEB-INF/dispatcher.xml</param-value>
         </init-param>
-        <async-supported>true</async-supported>
+        <!--<async-supported>true</async-supported>-->
         <load-on-startup>1</load-on-startup>
     </servlet>
-    <filter>
-        <filter-name>JwtRequestFilter</filter-name>
-        <filter-class>com.custom.dialog.lab.JwtRequestFilter</filter-class>
+<!--    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
         <async-supported>true</async-supported>
     </filter>
     <filter-mapping>
-        <filter-name>JwtRequestFilter</filter-name>
+        <filter-name>springSecurityFilterChain</filter-name>
         <url-pattern>/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>ASYNC</dispatcher>
-    </filter-mapping>
+    </filter-mapping>-->
+        <!--<http pattern="/api/login" security="none"/>   (2)-->
+    <!--<http pattern="/api/signup" security="none"/>-->
 </web-app>

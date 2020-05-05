@@ -34,39 +34,7 @@ public class DialogFlowController {
 
     private static final Props SETTINGS = new Props();
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @PostMapping(
-            path = "/authenticate",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @ResponseBody
-    @ResponseStatus(HttpStatus.OK)
-    public String saveUser(HashMap<String, String> auth) throws Exception {
-        CustomUser user = new CustomUser(auth.get("username"), auth.get("password"));
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
-            );
-        } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect username or password", e);
-
-        }
-
-        final UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
-
-        final String jwt = jwtUtil.generateToken(userDetails);
-
-        return SETTINGS.getStatusResponse("200_SCRN", jwt).toString();
-    }
 
     @GetMapping(path = "/get/atussd/flow", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody

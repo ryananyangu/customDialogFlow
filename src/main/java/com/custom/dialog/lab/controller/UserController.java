@@ -5,19 +5,27 @@
  */
 package com.custom.dialog.lab.controller;
 
+import ch.qos.logback.core.CoreConstants;
 import com.custom.dialog.lab.models.CustomUser;
 import com.custom.dialog.lab.services.CustomUserDetailsService;
 import com.custom.dialog.lab.utils.JwtUtil;
 import com.custom.dialog.lab.utils.Props;
+import com.google.cloud.Role;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,8 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author jovixe
  */
-
 @RestController
+@CrossOrigin(origins = "*")
+@RequestMapping(path = "/api/v1/user/", produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
 
     @Autowired
@@ -38,32 +47,30 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
-    
-    @Autowired
-    private static Props props;
+
+    private static final Props SETTINGS = new Props();
 
     @PostMapping(
-            path = "/authenticate",
+            path = "token",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String saveUser(HashMap<String, String> auth) throws Exception {
-        CustomUser user = new CustomUser(auth.get("username"), auth.get("password"));
+    public String saveUser(@RequestBody HashMap<String, String> auth) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword())
+                    new UsernamePasswordAuthenticationToken(auth.get("username"), auth.get("password"))
             );
         } catch (BadCredentialsException e) {
-            throw new Exception("Incorrect username or password", e);
+            return SETTINGS.getStatusResponse("401", e.getMessage()).toString();
 
         }
 
-        final UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
+        final UserDetails userDetails = customUserDetailsService.loadUserByUsername(auth.get("username"));
 
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return props.getStatusResponse("200_SCRN", jwt).toString();
+        return SETTINGS.getStatusResponse("200_SCRN", jwt).toString();
     }
 }
