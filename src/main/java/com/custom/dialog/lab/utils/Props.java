@@ -1,20 +1,19 @@
 package com.custom.dialog.lab.utils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import lombok.Data;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
 
 /**
  * Props
  */
-@Data
+@Service
 public class Props {
 
     private String statusCodes;

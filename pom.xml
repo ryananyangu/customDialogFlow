@@ -17,7 +17,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--<maven.compiler.release>1.8</maven.compiler.release>-->
         <start-class>com.custom.dialog.lab.App</start-class>
-        <app-version>standard-v2</app-version>
+        <app-version>standard-v3</app-version>
         <projectId>ussd-simulator-275712</projectId>
     </properties>
     <parent>
@@ -105,6 +105,7 @@
                     </archive>
                 </configuration>
             </plugin>
+            
         </plugins>
         <pluginManagement>
             <!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
@@ -150,6 +151,20 @@
             </plugins>
         </pluginManagement>
     </build>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-gcp-dependencies</artifactId>
+                <version>1.2.2.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    
+    
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -159,8 +174,15 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-gcp-starter</artifactId>
-            <version>1.2.2.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-gcp-starter-data-firestore</artifactId>
+        </dependency>
+        <!--        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-gcp-starter-firestore</artifactId>
+        </dependency>-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -234,31 +256,30 @@
             <artifactId>javax.persistence</artifactId>
             <version>2.1.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <!--<version>1.18.8</version>-->
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.messagebird</groupId>
             <artifactId>messagebird-api</artifactId>
             <version>3.0.12</version>
         </dependency>
         <dependency>
-            <groupId>com.google.firebase</groupId>
-            <artifactId>firebase-admin</artifactId>
-            <version>6.12.2</version>
-        </dependency>
-<!--        <dependency>
             <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-security-web</artifactId>
+            <!--<version>4.2.1.RELEASE</version>-->
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>-->
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <!--<version>4.2.1.RELEASE</version>-->
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
     </dependencies>
 </project>

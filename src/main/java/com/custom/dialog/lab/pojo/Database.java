@@ -11,11 +11,9 @@ import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.FirestoreOptions;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteResult;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,29 +23,27 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  *
  * @author jovixe
  */
+@Component
 public class Database {
 
     @Autowired
-    private Firestore database;
-    
-    private final static Logger LOGGER = Logger.getLogger(Database.class.getName());
+    Firestore firestore;
 
-//    public Database() {
-//        database = FirestoreOptions. getDefaultInstance().getService();
-//    }
+    private final static Logger LOGGER = Logger.getLogger(Database.class.getName());
 
     public boolean updateData(HashMap<String, Object> data, String collection, String documentId) {
 
-        CollectionReference collectionReference = database.collection(collection);
+        CollectionReference collectionReference = firestore.collection(collection);
         DocumentReference documentReference = collectionReference.document(documentId);
 
         Map docData = retrieveData(collection, documentId);
-
         if (!docData.isEmpty()) {
             documentReference.update(data);
             documentReference.get();
@@ -61,7 +57,7 @@ public class Database {
     // Bad function does 2 things save and update
     public boolean saveData(HashMap<String, Object> data, String collection, String documentId) {
 
-        CollectionReference collectionReference = database.collection(collection);
+        CollectionReference collectionReference = this.firestore.collection(collection);
         DocumentReference documentReference = collectionReference.document(documentId);
 
         Map docData = retrieveData(collection, documentId);
@@ -77,28 +73,24 @@ public class Database {
 
     public Map retrieveData(String collection, String documentId) {
 
-        LOGGER.log(Level.INFO,
-                Utils.prelogString("",
-                        Utils.getCodelineNumber(), "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
+        LOGGER.log(Level.INFO, Utils.prelogString("", Utils.getCodelineNumber(),
+                "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
 
         DocumentSnapshot document;
         try {
 
-            CollectionReference collectionReference = database.collection(collection);
+            CollectionReference collectionReference = this.firestore.collection(collection);
             DocumentReference documentReference = collectionReference.document(documentId);
             ApiFuture<DocumentSnapshot> future = documentReference.get();
             document = future.get(10, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            LOGGER.log(Level.SEVERE,
-                    Utils.prelogString("",
-                            Utils.getCodelineNumber(), "Error retrieving data >> " + ex.getLocalizedMessage()));
+            LOGGER.log(Level.SEVERE, Utils.prelogString("", Utils.getCodelineNumber(),
+                    "Error retrieving data >> " + ex.getLocalizedMessage()));
             return new HashMap();
         }
 
         if (!document.exists()) {
-            LOGGER.log(Level.INFO,
-                    Utils.prelogString("",
-                            Utils.getCodelineNumber(), "Document Does not exist"));
+            LOGGER.log(Level.INFO, Utils.prelogString("", Utils.getCodelineNumber(), "Document Does not exist"));
             return new HashMap<>();
         }
 
@@ -109,12 +101,10 @@ public class Database {
         List<QueryDocumentSnapshot> documents;
         HashMap<String, Object> screenData = new HashMap<>();
         try {
-            ApiFuture<QuerySnapshot> future = database.collection(collection).get();
+            ApiFuture<QuerySnapshot> future = this.firestore.collection(collection).get();
             documents = future.get(10, TimeUnit.SECONDS).getDocuments();
         } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-            LOGGER.log(Level.INFO,
-                    Utils.prelogString("",
-                            Utils.getCodelineNumber(), "Document Does not exist"));
+            LOGGER.log(Level.INFO, Utils.prelogString("", Utils.getCodelineNumber(), "Document Does not exist"));
             return new HashMap<>();
         }
 
@@ -127,11 +117,10 @@ public class Database {
     }
 
     public boolean deleteData(String collection, String documentId, boolean isSync) {
-        LOGGER.log(Level.INFO,
-                Utils.prelogString("",
-                        Utils.getCodelineNumber(), "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
+        LOGGER.log(Level.INFO, Utils.prelogString("", Utils.getCodelineNumber(),
+                "Data submitted to function :: collection = " + collection + " :: documentID = " + documentId));
         try {
-            ApiFuture<WriteResult> writeResult = database.collection(collection).document(documentId).delete();
+            ApiFuture<WriteResult> writeResult = this.firestore.collection(collection).document(documentId).delete();
             if (isSync) {
                 writeResult.get(10, TimeUnit.SECONDS).getUpdateTime();
             }

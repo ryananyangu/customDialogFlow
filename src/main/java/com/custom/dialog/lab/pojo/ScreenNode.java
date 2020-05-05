@@ -5,13 +5,11 @@ import com.custom.dialog.lab.utils.Utils;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.WriteResult;
 import java.util.*;
-import lombok.Data;
 import java.util.logging.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@Data
 public class ScreenNode {
 
     private static final Props SETTINGS = new Props();
@@ -34,8 +32,8 @@ public class ScreenNode {
         /**
          * Validate mandatory fields
          */
-        if (!getScreenType().isEmpty() && !getNodeName().isEmpty()
-                && !getShortCode().isEmpty() && !getScreenText().isEmpty()) {
+        if (!getScreenType().isEmpty() && !getNodeName().isEmpty() && !getShortCode().isEmpty()
+                && !getScreenText().isEmpty()) {
             return new JSONObject();
 
         }
@@ -177,7 +175,8 @@ public class ScreenNode {
 
             HashMap<String, Object> currentScreen = screenBulk.get(screen);
             if (currentScreen.get("screenType").toString().equalsIgnoreCase("items")) {
-                List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen.get("nodeItems");
+                List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen
+                        .get("nodeItems");
                 nodeItemsValid.forEach((item) -> {
                     String nextScreen = item.get("nextScreen");
                     if (!"end".equalsIgnoreCase(nextScreen)) {
@@ -230,8 +229,7 @@ public class ScreenNode {
 
     public JSONObject deleteData(Object data) {
         HashMap<String, String> request = (HashMap) data;
-        if (!request.containsKey("shortCode") || !request.containsKey("nodeName")
-                || request.keySet().size() != 2) {
+        if (!request.containsKey("shortCode") || !request.containsKey("nodeName") || request.keySet().size() != 2) {
             return SETTINGS.getStatusResponse("400", data);
         }
         setShortCode(request.get("shortCode"));
@@ -244,7 +242,7 @@ public class ScreenNode {
 
         HashMap<String, Object> flow = database.retrieveDataList(shortCode);
         if (flow.isEmpty()) {
-            
+
             // deleted node was root node
             return SETTINGS.getStatusResponse("200_SCRN_1", flow);
         }
@@ -277,7 +275,8 @@ public class ScreenNode {
 
             HashMap<String, Object> currentScreen = (HashMap<String, Object>) flow.get(screen);
             if (currentScreen.get("screenType").toString().equalsIgnoreCase("items")) {
-                List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen.get("nodeItems");
+                List<HashMap<String, String>> nodeItemsValid = (List<HashMap<String, String>>) currentScreen
+                        .get("nodeItems");
                 nodeItemsValid.forEach((item) -> {
                     String nextScreen = item.get("nextScreen");
                     if (!"end".equalsIgnoreCase(nextScreen)) {
@@ -305,6 +304,131 @@ public class ScreenNode {
             return SETTINGS.getStatusResponse("404_FLW_1", flow);
         }
         return new JSONObject(flow);
+    }
+    /**
+     * @param nodeExtraData the nodeExtraData to set
+     */
+    public void setNodeExtraData(HashMap<String, String> nodeExtraData) {
+        this.nodeExtraData = nodeExtraData;
+    }
+
+    /**
+     * @param nodeItems the nodeItems to set
+     */
+    public void setNodeItems(List<HashMap<String, String>> nodeItems) {
+        this.nodeItems = nodeItems;
+    }
+
+
+
+    /**
+     * @param nodeName the nodeName to set
+     */
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
+
+    /**
+     * @param nodeOptions the nodeOptions to set
+     */
+    public void setNodeOptions(List<String> nodeOptions) {
+        this.nodeOptions = nodeOptions;
+    }
+
+
+    /**
+     * @param isScreenActive the isScreenActive to set
+     */
+    public void setScreenActive(boolean isScreenActive) {
+        this.isScreenActive = isScreenActive;
+    }
+
+
+
+    /**
+     * @param screenData the screenData to set
+     */
+    public void setScreenData(List<HashMap> screenData) {
+        this.screenData = screenData;
+    }
+
+
+    /**
+     * @param screenNext the screenNext to set
+     */
+    public void setScreenNext(String screenNext) {
+        this.screenNext = screenNext;
+    }
+
+
+
+    /**
+     * @param screenText the screenText to set
+     */
+    public void setScreenText(String screenText) {
+        this.screenText = screenText;
+    }
+
+
+    /**
+     * @param screenType the screenType to set
+     */
+    public void setScreenType(String screenType) {
+        this.screenType = screenType;
+    }
+
+    /**
+     * @param shortCode the shortCode to set
+     */
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
+    }
+
+
+    /**
+     * @param validatedScreens the validatedScreens to set
+     */
+    public void setValidatedScreens(List<ApiFuture<WriteResult>> validatedScreens) {
+        this.validatedScreens = validatedScreens;
+    }
+
+
+    /**
+     * @return the screenNext
+     */
+    public String getScreenNext() {
+        return screenNext;
+    }
+
+
+    /**
+     * @return the shortCode
+     */
+    public String getShortCode() {
+        return shortCode;
+    }
+
+
+    /**
+     * @return the screenType
+     */
+    public String getScreenType() {
+        return screenType;
+    }
+    /**
+     * @return the nodeName
+     */
+    public String getNodeName() {
+        return nodeName;
+    }
+
+
+    /**
+     * @return the screenText
+     */
+    public String getScreenText() {
+        return screenText;
     }
 
 }
