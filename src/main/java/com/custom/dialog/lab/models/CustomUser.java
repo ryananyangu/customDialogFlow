@@ -10,16 +10,17 @@ package com.custom.dialog.lab.models;
  * @author jovixe
  */
 import com.google.cloud.firestore.annotation.DocumentId;
+import java.io.Serializable;
 import org.springframework.cloud.gcp.data.firestore.Document;
 
 @Document(collectionName = "users")
-public class CustomUser {
+public class CustomUser implements Serializable{
 
     @DocumentId
     private String email;
 
     private String password;
-
+    
     private String organization;
 
     public CustomUser() {

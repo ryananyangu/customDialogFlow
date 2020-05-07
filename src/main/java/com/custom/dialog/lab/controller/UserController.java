@@ -5,22 +5,21 @@
  */
 package com.custom.dialog.lab.controller;
 
-import ch.qos.logback.core.CoreConstants;
 import com.custom.dialog.lab.models.CustomUser;
 import com.custom.dialog.lab.services.CustomUserDetailsService;
 import com.custom.dialog.lab.utils.JwtUtil;
 import com.custom.dialog.lab.utils.Props;
-import com.google.cloud.Role;
-import java.util.ArrayList;
+import com.google.cloud.firestore.DocumentReference;
+
+import com.google.cloud.firestore.Firestore;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +47,9 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    Firestore firestore;
+
     private static final Props SETTINGS = new Props();
 
     @PostMapping(
@@ -62,7 +64,7 @@ public class UserController {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(auth.get("username"), auth.get("password"))
             );
-        } catch (BadCredentialsException e) {
+        } catch (AuthenticationException e) {
             return SETTINGS.getStatusResponse("401", e.getMessage()).toString();
 
         }
@@ -72,5 +74,24 @@ public class UserController {
         final String jwt = jwtUtil.generateToken(userDetails);
 
         return SETTINGS.getStatusResponse("200_SCRN", jwt).toString();
+    }
+
+    @PostMapping(
+            path = "signup",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public String createUser(@RequestBody HashMap<String, String> request) throws InterruptedException, ExecutionException {
+        CustomUser user = new CustomUser(request.get("username"), request.get("password"));
+        
+        
+        DocumentReference reference = firestore.collection("users").document(user.getEmail());
+        if(reference.get().get().exists()){
+            return SETTINGS.getStatusResponse("400_USR_1", request.get("username")).toString();
+        }
+        reference.set(user).get();
+        return SETTINGS.getStatusResponse("200_SCRN_1", request.get("username")).toString();
     }
 }

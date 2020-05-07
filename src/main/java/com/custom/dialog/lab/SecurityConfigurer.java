@@ -64,7 +64,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 // All of Spring Security will ignore the requests.
-                .antMatchers("/api/v1/user/*");
+                .antMatchers("/api/v1/user/token");
     }
 
 }

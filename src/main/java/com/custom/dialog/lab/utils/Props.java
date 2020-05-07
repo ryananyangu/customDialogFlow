@@ -17,17 +17,31 @@ import org.springframework.stereotype.Service;
 public class Props {
 
     private String statusCodes;
+    private String flowErrors;
     private final static Logger LOGGER = Logger.getLogger(Props.class.getName());
 
     public Props() {
-        setup();
+        SystemErrsetup();
+        FlowErrsetup();
     }
 
-    private void setup() {
+    private void SystemErrsetup() {
         ClassPathResource resource = new ClassPathResource("statusCodes.json");
         try {
             Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
             this.statusCodes = s.hasNext() ? s.next() : "";
+//            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void FlowErrsetup() {
+        ClassPathResource resource = new ClassPathResource("screenErrors.json");
+        try {
+            Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
+            this.flowErrors = s.hasNext() ? s.next() : "";
 //            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
         } catch (IOException ex) {
@@ -58,5 +72,19 @@ public class Props {
         returnCode.put("message", "Internal Error StatusCode not found in file");
         returnCode.put("data", data);
         return new JSONObject(returnCode);
+    }
+    
+    public String getFlowError(String code){
+        JSONObject errors;
+        try {
+            errors = new JSONObject(flowErrors);
+        } catch (JSONException e) {
+            return "Internal System Error "+Utils.getCodelineNumber();
+        }
+
+        if (errors.has(code)) {
+            return errors.getString(code);
+        }
+        return "Internal System Error "+Utils.getCodelineNumber();
     }
 }

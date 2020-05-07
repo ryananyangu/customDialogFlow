@@ -2,8 +2,10 @@
     "200_SCRN": "Confirmed successfull transaction",
     "200_SCRN_1": "Data submitted for processing check status after 30 seconds",
     "400_SCRN_5": "Validation failed, items should contain both nextScreen and displayText key",
+    "400_SCRN_8": "Screens Submitted have varying codes associated",
     "404_SCRN_1": "Screen not found in submitted Flow",
     "400_SCRN_6": "Uknown Page type submitted",
+    "400_SCRN":"Validation of flow failed",
     "400_SCRN_1": "Validation failed, Mandatory fields left empty",
     "400_SCRN_2": "Validation failed, Raw input has to define screen Next and not have option and items",
     "400_SCRN_3": "Validation failed, options input has to define screen Next and have option and not items",
@@ -13,5 +15,6 @@
     "404_FLW_1" : "Flow Not found ",
     "500_STS_3" : "System error retrieving data",
     "400":"Invalid payload",
-    "401":"Invalid Credentials"
+    "401":"Invalid Credentials",
+    "400_USR_1":"User already Exists"
 }

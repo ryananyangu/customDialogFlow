@@ -1,25 +1,28 @@
 package com.custom.dialog.lab.controller;
 
-import com.custom.dialog.lab.models.CustomUser;
-import com.custom.dialog.lab.models.UserRepository;
-import com.custom.dialog.lab.pojo.ScreenNode;
-import com.custom.dialog.lab.pojo.Session;
-import com.custom.dialog.lab.services.CustomUserDetailsService;
-import com.custom.dialog.lab.utils.JwtUtil;
+import com.custom.dialog.lab.pojo.FlowProcessor;
+import com.custom.dialog.lab.pojo.SessionProcessor;
 import com.custom.dialog.lab.utils.Props;
+import com.google.cloud.firestore.DocumentReference;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,69 +37,101 @@ public class DialogFlowController {
 
     private static final Props SETTINGS = new Props();
 
+    private static final String FLOW_PATH = "menus";
 
+    @Autowired
+    Firestore firestore;
 
-    @GetMapping(path = "/get/atussd/flow", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/flow/get/screen", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam String msisdn,
-            @RequestParam String session, @RequestParam String input) {
-        Session session_menu = new Session(msisdn, session, input);
-        Map<String, Object> nextScreenData = session_menu.screenNavigate();
-        return session_menu.displayText(nextScreenData);
-    }
+            @RequestParam String session, @RequestParam String input) throws InterruptedException, ExecutionException {
 
-    @ResponseBody
-    @PostMapping(path = "/screen/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String createScreen(@RequestBody Object screen) {
-        ScreenNode screenNode = new ScreenNode();
-        return screenNode.saveRedisData(screen).toString();
-    }
+        DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session).get().get();
+        SessionProcessor session_menu = new SessionProcessor(msisdn, session, input, new HashMap<>());
 
-    @ResponseBody
-    @PostMapping(path = "/screen/delete", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String deleteScreen(@RequestBody Object screen) {
-        ScreenNode screenNode = new ScreenNode();
-        return screenNode.deleteData(screen).toString();
-    }
+        Map data = session_menu.screenNavigate((Map<String, Object>) ss_snapshot.getData());
 
-    @ResponseBody
-    @PostMapping(path = "/screen/update", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String updateScreen(@RequestBody Object screen) {
-        ScreenNode screenNode = new ScreenNode();
-        return screenNode.updateScreen(screen).toString();
-    }
-
-    @ResponseBody
-    @PostMapping(path = "/screen/bulk/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String bulkCreateScreen(@RequestBody Object screens) {
-        ScreenNode screenNode = new ScreenNode();
-        JSONObject validation = screenNode.isValidFlow(screens);
-
-        if (!validation.isEmpty()) {
-            return validation.toString();
+        if (data.isEmpty()) {
+            return session_menu.getErrors().get(0);
         }
-        return screenNode.bulkSave().toString();
+        DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode").toString()).get().get();
+
+        Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen").toString());
+        firestore.collection("sessions").document(session).set(data2).get();
+
+        return session_menu.displayText(data2);
     }
 
     @ResponseBody
-    @PostMapping(path = "/flow/validate", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/flow/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public String bulkCreateScreen(@RequestBody Object screens) throws InterruptedException, ExecutionException {
+        FlowProcessor flowProcessor = new FlowProcessor();
+
+        if (flowProcessor.isValidFlow(screens)) {
+
+            String path = FLOW_PATH + "/" + flowProcessor.getShortcode();
+            firestore.document(path).set(flowProcessor.getScreenData()).get();
+            return SETTINGS.getStatusResponse("200_SCRN", flowProcessor.getErrors()).toString();
+        }
+
+        return SETTINGS.getStatusResponse("400_SCRN", flowProcessor.getErrors()).toString();
+    }
+
+    @ResponseBody
+    @PostMapping(
+            path = "/flow/validate",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public String validateFlow(@RequestBody Object screens) {
-        ScreenNode screenNode = new ScreenNode();
-        JSONObject validation = screenNode.isValidFlow(screens);
+        FlowProcessor flowProcessor = new FlowProcessor();
 
-        if (!validation.isEmpty()) {
-            return validation.toString();
+        if (flowProcessor.isValidFlow(screens)) {
+            return SETTINGS.getStatusResponse("200_SCRN", new HashMap()).toString();
         }
-        return SETTINGS.getStatusResponse("200_SCRN", screens).toString();
+        return SETTINGS.getStatusResponse("400_SCRN", screens).toString();
     }
 
-    @GetMapping(path = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/flow/get", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String getFlow(@RequestParam String shortcode) {
-        ScreenNode screenNode = new ScreenNode();
-        return screenNode.getFlow(shortcode).toString();
+    public String getFlow(@RequestParam String shortcode) throws InterruptedException, ExecutionException {
+        DocumentSnapshot snapshot = firestore.document("menus/" + shortcode).get().get();
+        return new JSONObject(snapshot.getData()).toString();
     }
 
+    @ResponseBody
+    @DeleteMapping(path = "/flow/delete/{shortcode}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String deleteFlow(@PathVariable String shortcode) throws InterruptedException, ExecutionException {
+        WriteResult result = firestore.collection("menus").document(shortcode).delete().get();
+
+        return SETTINGS.getStatusResponse("200_SCRN", new SimpleDateFormat("YYYY/MM/dd HH:mm:ss").format(result.getUpdateTime().toDate())).toString();
+    }
+
+    @ResponseBody
+    @GetMapping(path = "/flow/list", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getShortCodes() {
+        List<String> configuredCodes = new ArrayList<>();
+        firestore.collection(FLOW_PATH).listDocuments().forEach((action)
+                -> configuredCodes.add(action.getId()
+                ));
+        return SETTINGS.getStatusResponse("200_SCRN", configuredCodes).toString();
+    }
+
+    @PutMapping("/flow/update/{shortcode}")
+    public String update(@PathVariable String shortcode, @RequestBody Object flow) throws InterruptedException, ExecutionException {
+        DocumentReference reference = firestore.collection(FLOW_PATH).document(shortcode);
+
+        FlowProcessor flowProcessor = new FlowProcessor();
+
+        if (flowProcessor.isValidFlow(flow) && reference.get().get().exists()) {
+            reference.set(flowProcessor.getScreenData()).get();
+            return SETTINGS.getStatusResponse("200_SCRN", flowProcessor.getErrors()).toString();
+        }
+
+        return SETTINGS.getStatusResponse("400_SCRN", flowProcessor.getErrors()).toString();
+
+    }
 }
