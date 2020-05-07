@@ -21,6 +21,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -84,11 +85,13 @@ public class UserController {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String createUser(@RequestBody HashMap<String, String> request) throws InterruptedException, ExecutionException {
-        CustomUser user = new CustomUser(request.get("username"), request.get("password"));
-        
-        
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String hashedPassword = passwordEncoder.encode(request.get("password"));
+        CustomUser user = new CustomUser(request.get("username"), hashedPassword);
+
         DocumentReference reference = firestore.collection("users").document(user.getEmail());
-        if(reference.get().get().exists()){
+        if (reference.get().get().exists()) {
             return SETTINGS.getStatusResponse("400_USR_1", request.get("username")).toString();
         }
         reference.set(user).get();
