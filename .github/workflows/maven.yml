@@ -5,62 +5,35 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: saadake/gcloudjava:v0.0.1
     name: build
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
+
+    - name: Cache Maven packages
+      uses: actions/cache@v1
       with:
-        java-version: 11
+        path: ~/.m2
+        key: maven-cache-${{ hashFiles('**/pom.xml') }}
+        restore-keys: maven-cache-${{ hashFiles('**/pom.xml') }}
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml 
-  coverage:
+      run: |
+        if [ -e ~/.m2 ]; then
+          echo "Using cached dependencies"
+        else
+          mvn -B package --file pom.xml
+        fi
 
-    runs-on: [ubuntu-latest]
-    name: test
+    - name: Coverage with JaCoCo
+      run: mvn -V clean verify jacoco:prepare-agent test integration-test jacoco:report --file pom.xml
 
-    steps:
-      - uses: actions/checkout@v1
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1.0.3
+      with:
+        token: face55b1-42ed-4cb5-9b63-facf0a027280
 
-      - name: Cache Maven packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Coverage with JaCoCo
-        run: mvn -V clean verify jacoco:prepare-agent test integration-test jacoco:report --file pom.xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.0.3
-        with:
-          token: face55b1-42ed-4cb5-9b63-facf0a027280
-        
-#   deploy: 
-#     runs-on: [ubuntu-latest]
-#     name: deploy
-
-#     steps:
-#       - uses: actions/checkout@v1
-#       - name: Set up JDK 11
-#         uses: actions/setup-java@v1
-#         with:
-#           java-version: 11
-
-#       - name: Cache Maven packages
-#         uses: actions/cache@v1
-#         with:
-#           path: ~/.m2
-#           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-#           restore-keys: ${{ runner.os }}-m2
-
-#       - name: Deploy to google app engine
-#         run: mvn clean package appengine:deploy -P cloud-gcp
+    - name: Deploy to google app engine
+      run: mvn clean package appengine:deploy -P cloud-gcp
        
