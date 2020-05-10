@@ -36,7 +36,7 @@ jobs:
 
     - name: Authorize GCP
       run: |
-        echo ${{ secrets.SERVICE_ACCOUNT }}>service_account.json
+        echo ${{ secrets.SERVICE_ACCOUNT }} | base64 --decode > service_account.json
         gcloud auth activate-service-account ${{ secrets.SERVICE_ACCOUNT_EMAIL }} --key-file=service_account.json
 
     - name: Deploy to google app engine
