@@ -34,14 +34,12 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
 
-    - name: Authorize GCP
+    - name: Deploy to google app engine
       env:
         SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
         SERVICE_ACCOUNT_EMAIL: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
       run: |
         echo "$SERVICE_ACCOUNT" | base64 --decode > service_account.json
-        gcloud auth activate-service-account "$SERVICE_ACCOUNT_EMAIL" --key-file=service_account.json
-
-    - name: Deploy to google app engine
-      run: mvn clean package appengine:deploy -P cloud-gcp
+        export GOOGLE_APPLICATION_CREDENTIALS=service_account.json
+        mvn clean package appengine:deploy -P cloud-gcp
        
