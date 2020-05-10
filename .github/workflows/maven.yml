@@ -4,9 +4,11 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: saadake/gcloudjava:v0.0.1
+    runs-on: ubuntu-latest
     name: build
+    runs:
+      using: 'docker'
+      image: 'saadake/gcloudjava:v0.0.1'
 
     steps:
     - uses: actions/checkout@v2
