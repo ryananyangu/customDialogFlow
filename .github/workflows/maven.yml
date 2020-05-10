@@ -32,7 +32,12 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1.0.3
       with:
-        token: face55b1-42ed-4cb5-9b63-facf0a027280
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Authorize GCP
+      run: |
+        echo ${{ secrets.SERVICE_ACCOUNT }}>service_account.json
+        gcloud auth activate-service-account ${{ secrets.SERVICE_ACCOUNT_EMAIL }} --key-file=service_account.json
 
     - name: Deploy to google app engine
       run: mvn clean package appengine:deploy -P cloud-gcp
