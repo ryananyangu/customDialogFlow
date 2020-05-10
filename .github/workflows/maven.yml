@@ -6,9 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: build
-    runs:
-      using: 'docker'
-      image: 'saadake/gcloudjava:v0.0.1'
+    container: 'saadake/gcloudjava:v0.0.1'
 
     steps:
     - uses: actions/checkout@v2
