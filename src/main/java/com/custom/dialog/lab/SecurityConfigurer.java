@@ -17,9 +17,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+
+
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static java.util.Arrays.asList;
+import org.springframework.http.HttpMethod;
 /**
  *
  * @author jovixe
@@ -52,8 +59,10 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.cors().configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues()).and().csrf().disable()
-                .authorizeRequests().antMatchers("/authenticate").permitAll().
+        httpSecurity
+                .authorizeRequests()
+                .antMatchers("/api/v1/user/token").permitAll()
+                .antMatchers(HttpMethod.OPTIONS).permitAll().
                 anyRequest().authenticated().and().
                 exceptionHandling().and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -63,9 +72,6 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring()
-                // All of Spring Security will ignore the requests.
-                .antMatchers("/api/v1/user/token");
+        web.ignoring().antMatchers("/api/v1/user/token");
     }
-
 }
