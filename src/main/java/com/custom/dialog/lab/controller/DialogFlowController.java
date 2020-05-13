@@ -50,19 +50,25 @@ public class DialogFlowController {
     public String sessionNavigator(@RequestParam String msisdn,
             @RequestParam String session, @RequestParam String input) {
 
-        SessionProcessor session_menu = new SessionProcessor(msisdn, session, input, new HashMap<>());
-
-        Map data = session_menu.screenNavigate();
-
-        if (data.isEmpty()) {
-            return session_menu.getErrors().get(0);
+        try {
+            DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session).get().get();
+            SessionProcessor session_menu = new SessionProcessor(msisdn, session, input, new HashMap<>());
+            
+            Map data = session_menu.screenNavigate((Map<String, Object>) ss_snapshot.getData());
+            
+            if (data.isEmpty()) {
+                return session_menu.getErrors().get(0);
+            }
+            DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode").toString()).get().get();
+            
+            Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen").toString());
+            firestore.collection("sessions").document(session).set(data2).get();
+            
+            return session_menu.displayText(data2);
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
+            return SETTINGS.getFlowError("3");
         }
-
-        Map data2 = session_menu.getNextScreenDetails(
-                data.get("shortCode").toString(),
-                data.get("nextScreen").toString());
-
-        return session_menu.displayText(data2);
     }
 
     @ResponseBody
@@ -111,9 +117,9 @@ public class DialogFlowController {
             snapshot = firestore.document("menus/" + shortcode).get().get();
         } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
-            return SETTINGS.getStatusResponse("500_STS_3", ex.getLocalizedMessage()).toString();
+            return SETTINGS.getStatusResponse("404_FLW_1", ex.getLocalizedMessage()).toString();
         }
-        return new JSONObject(snapshot.getData()).toString();
+        return SETTINGS.getStatusResponse("200_SCRN", snapshot.getData()).toString();
     }
 
     @ResponseBody

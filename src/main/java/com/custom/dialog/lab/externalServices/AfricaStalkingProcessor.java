@@ -36,6 +36,9 @@ public class AfricaStalkingProcessor extends SessionProcessor{
     }
 
     
+    
+
+    
     public AfricaStalkingProcessor(String phoneNumber, String sessionId, String input, HashMap<String, Object> extraData) {
         super(phoneNumber, sessionId, input, extraData);
     }
@@ -47,12 +50,6 @@ public class AfricaStalkingProcessor extends SessionProcessor{
 
         if (screenData.isEmpty()) {
 
-            return "END "+SETTINGS.getFlowError("3");
-        }
-        try {
-            firestore.collection("sessions").document(this.getSessionId()).set(screenData).get();
-        } catch (InterruptedException | ExecutionException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
             return "END "+SETTINGS.getFlowError("3");
         }
 
