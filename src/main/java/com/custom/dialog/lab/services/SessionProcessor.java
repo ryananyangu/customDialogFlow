@@ -3,23 +3,31 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.custom.dialog.lab.pojo;
-
+package com.custom.dialog.lab.services;
 
 import com.custom.dialog.lab.utils.Props;
 import com.custom.dialog.lab.utils.Utils;
+import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.Firestore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author jovixe
  */
+@Service
 public class SessionProcessor {
+
+    @Autowired
+    Firestore firestore;
 
     private String phoneNumber;
 
@@ -30,13 +38,15 @@ public class SessionProcessor {
     private HashMap<String, Object> extraData;
 
     private List<String> errors = new ArrayList<>();
-    
-    
+
     private final static Logger LOGGER = Logger.getLogger(SessionProcessor.class.getName());
     private static final Props SETTINGS = new Props();
+
+    public SessionProcessor() {
+    }
     
     
-    
+
     public SessionProcessor(String phoneNumber, String sessionId, String input, HashMap<String, Object> extraData) {
         this.phoneNumber = phoneNumber;
         this.sessionId = sessionId;
@@ -76,18 +86,26 @@ public class SessionProcessor {
         this.sessionId = sessionId;
     }
 
-    public Map screenNavigate(Map<String,Object> sessionData) {
+    public Map screenNavigate() {
+
+        DocumentSnapshot ss_snapshot = null;
+        try {
+            ss_snapshot = firestore.collection("sessions").document(sessionId).get().get();
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(SessionProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            return new HashMap();
+        }
+        Map<String, Object> sessionData = (Map<String, Object>) ss_snapshot.getData();
         HashMap<String, String> response = new HashMap<>();
         // means it is the first screen
-        if ( sessionData == null || sessionData.isEmpty()) {
+        if (sessionData == null || sessionData.isEmpty()) {
             response.put("shortCode", input);
             response.put("nextScreen", "start_page");
             return response;
 
         }
-        
-        
-        Map<String,Object> currentScreenData = (Map<String,Object>)sessionData.get("screenNode");
+
+        Map<String, Object> currentScreenData = (Map<String, Object>) sessionData.get("screenNode");
         String screenType = String.valueOf(currentScreenData.get("screenType"));
         String shortCode = String.valueOf(currentScreenData.get("shortCode"));
 
@@ -119,25 +137,32 @@ public class SessionProcessor {
         }
     }
 
-    public String displayText(Map<String,Object> screenData) {
+    public String displayText(Map<String, Object> screenData) {
+        
         
         LOGGER.log(Level.INFO,
                 Utils.prelogString(sessionId,
                         Utils.getCodelineNumber(), "Data submitted to function :: " + screenData),
                 screenData);
-        if (screenData.isEmpty() ) {
+        if (screenData.isEmpty()) {
             LOGGER.log(Level.SEVERE,
                     Utils.prelogString(sessionId,
                             Utils.getCodelineNumber(), "failed database transaction or invalid screen type"),
                     screenData);
             return SETTINGS.getFlowError("3");
         }
-        
-         if(!errors.isEmpty()){
-             return errors.get(0);
-         }
-        
-        Map<String,Object> retrievedScreen = (Map<String,Object>)screenData.get("screenNode");
+        try {
+            firestore.collection("sessions").document(sessionId).set(screenData).get();
+        } catch (InterruptedException  | ExecutionException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            return SETTINGS.getFlowError("3");
+        }
+
+        if (!errors.isEmpty()) {
+            return errors.get(0);
+        }
+
+        Map<String, Object> retrievedScreen = (Map<String, Object>) screenData.get("screenNode");
 
         String screenType = retrievedScreen.get("screenType").toString();
         String screenText = retrievedScreen.get("screenText").toString();
@@ -166,8 +191,19 @@ public class SessionProcessor {
 
     }
 
-    public Map getNextScreenDetails(Map flow, String nextScreen) {
+    public Map getNextScreenDetails(String shortcode, String nextScreen) {
 
+        
+        DocumentSnapshot sc_snapshot;
+        try {
+            sc_snapshot = firestore.collection("menus").document(shortcode).get().get();
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(SessionProcessor.class.getName()).log(Level.SEVERE, null, ex);
+            errors.add("Error fetching menu");
+            return new HashMap();
+        } 
+        Map flow = sc_snapshot.getData();
+        
         if (flow.isEmpty()) {
             errors.add("Menu Flow Not Found");
             return new HashMap();
@@ -190,6 +226,5 @@ public class SessionProcessor {
     public List<String> getErrors() {
         return errors;
     }
-    
-    
+
 }

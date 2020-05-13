@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.custom.dialog.lab.pojo;
+package com.custom.dialog.lab.services;
 
 import com.custom.dialog.lab.utils.Props;
 import java.util.ArrayList;

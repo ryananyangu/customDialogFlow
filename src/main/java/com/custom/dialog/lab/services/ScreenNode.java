@@ -1,4 +1,4 @@
-package com.custom.dialog.lab.pojo;
+package com.custom.dialog.lab.services;
 
 import com.custom.dialog.lab.utils.Props;
 import java.io.Serializable;

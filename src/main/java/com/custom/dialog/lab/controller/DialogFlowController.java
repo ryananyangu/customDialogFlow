@@ -1,7 +1,7 @@
 package com.custom.dialog.lab.controller;
 
-import com.custom.dialog.lab.pojo.FlowProcessor;
-import com.custom.dialog.lab.pojo.SessionProcessor;
+import com.custom.dialog.lab.services.FlowProcessor;
+import com.custom.dialog.lab.services.SessionProcessor;
 import com.custom.dialog.lab.utils.Props;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(path = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/flow", produces = MediaType.APPLICATION_JSON_VALUE)
 public class DialogFlowController {
 
     private static final Props SETTINGS = new Props();
@@ -42,37 +44,41 @@ public class DialogFlowController {
     @Autowired
     Firestore firestore;
 
-    @GetMapping(path = "/flow/get/screen", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/get/screen", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam String msisdn,
-            @RequestParam String session, @RequestParam String input) throws InterruptedException, ExecutionException {
+            @RequestParam String session, @RequestParam String input) {
 
-        DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session).get().get();
         SessionProcessor session_menu = new SessionProcessor(msisdn, session, input, new HashMap<>());
 
-        Map data = session_menu.screenNavigate((Map<String, Object>) ss_snapshot.getData());
+        Map data = session_menu.screenNavigate();
 
         if (data.isEmpty()) {
             return session_menu.getErrors().get(0);
         }
-        DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode").toString()).get().get();
 
-        Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen").toString());
-        firestore.collection("sessions").document(session).set(data2).get();
+        Map data2 = session_menu.getNextScreenDetails(
+                data.get("shortCode").toString(),
+                data.get("nextScreen").toString());
 
         return session_menu.displayText(data2);
     }
 
     @ResponseBody
-    @PostMapping(path = "/flow/create", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String bulkCreateScreen(@RequestBody Object screens) throws InterruptedException, ExecutionException {
+    @PostMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public String bulkCreateScreen(@RequestBody Object screens) {
         FlowProcessor flowProcessor = new FlowProcessor();
 
         if (flowProcessor.isValidFlow(screens)) {
 
-            String path = FLOW_PATH + "/" + flowProcessor.getShortcode();
-            firestore.document(path).set(flowProcessor.getScreenData()).get();
+            try {
+                firestore.collection(FLOW_PATH).document(flowProcessor.getShortcode()).set(flowProcessor.getScreenData()).get();
+            } catch (InterruptedException | ExecutionException ex) {
+                Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
+                return SETTINGS.getStatusResponse("500_STS_3", ex.getLocalizedMessage()).toString();
+            }
+
             return SETTINGS.getStatusResponse("200_SCRN", flowProcessor.getErrors()).toString();
         }
 
@@ -81,7 +87,7 @@ public class DialogFlowController {
 
     @ResponseBody
     @PostMapping(
-            path = "/flow/validate",
+            path = "/validate",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
@@ -94,24 +100,38 @@ public class DialogFlowController {
         return SETTINGS.getStatusResponse("400_SCRN", screens).toString();
     }
 
-    @GetMapping(path = "/flow/get", produces = MediaType.APPLICATION_JSON_VALUE)
+    
+    
+    @GetMapping(path = "/get", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String getFlow(@RequestParam String shortcode) throws InterruptedException, ExecutionException {
-        DocumentSnapshot snapshot = firestore.document("menus/" + shortcode).get().get();
+    public String getFlow(@RequestParam String shortcode) {
+        DocumentSnapshot snapshot;
+        try {
+            snapshot = firestore.document("menus/" + shortcode).get().get();
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
+            return SETTINGS.getStatusResponse("500_STS_3", ex.getLocalizedMessage()).toString();
+        }
         return new JSONObject(snapshot.getData()).toString();
     }
 
     @ResponseBody
-    @DeleteMapping(path = "/flow/delete/{shortcode}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String deleteFlow(@PathVariable String shortcode) throws InterruptedException, ExecutionException {
-        WriteResult result = firestore.collection("menus").document(shortcode).delete().get();
+    @DeleteMapping(path = "/delete/{shortcode}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public String deleteFlow(@PathVariable String shortcode)  {
+        WriteResult result;
+        try {
+            result = firestore.collection("menus").document(shortcode).delete().get();
+        } catch (InterruptedException | ExecutionException ex) {
+            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
+            return SETTINGS.getStatusResponse("500_STS_3", ex.getLocalizedMessage()).toString();
+        }
 
         return SETTINGS.getStatusResponse("200_SCRN", new SimpleDateFormat("YYYY/MM/dd HH:mm:ss").format(result.getUpdateTime().toDate())).toString();
     }
 
     @ResponseBody
-    @GetMapping(path = "/flow/list", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getShortCodes() {
         List<String> configuredCodes = new ArrayList<>();
         firestore.collection(FLOW_PATH).listDocuments().forEach((action)
@@ -120,7 +140,7 @@ public class DialogFlowController {
         return SETTINGS.getStatusResponse("200_SCRN", configuredCodes).toString();
     }
 
-    @PutMapping("/flow/update/{shortcode}")
+    @PutMapping("/update/{shortcode}")
     public String update(@PathVariable String shortcode, @RequestBody Object flow) throws InterruptedException, ExecutionException {
         DocumentReference reference = firestore.collection(FLOW_PATH).document(shortcode);
 

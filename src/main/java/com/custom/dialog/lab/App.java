@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@EnableAutoConfiguration
+//@EnableAutoConfiguration
 @SpringBootApplication
-@EnableReactiveFirestoreRepositories
+//@EnableReactiveFirestoreRepositories
 public class App extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
