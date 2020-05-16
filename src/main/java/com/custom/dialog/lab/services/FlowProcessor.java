@@ -32,9 +32,16 @@ public class FlowProcessor {
             String screen = requiredScreens.get(0);
 
             // check if screen is valid
-            if (!screenBulk.containsKey(screen)) {
-                errors.add(SETTINGS.getStatusResponse("404_SCRN_1", screen));
+            if (!screenBulk.containsKey(screen) && !screenData.containsKey(screen)) {
+
+                errors.add(SETTINGS.getStatusResponse("404_SCRN_1", screen + " >> undefined"));
                 return false;
+            }
+
+            if (screenData.containsKey(screen)) {
+                requiredScreens.remove(screen);
+                // screen was already defined validated
+                continue;
             }
 
             // structure validate and set vars for obj
@@ -44,21 +51,33 @@ public class FlowProcessor {
 
             errors = screenNode.getErrors();
             if (buildScreen(node).getNodeName().isEmpty()) {
-                errors.add(SETTINGS.getStatusResponse("400_SCRN_1", screen));
+                errors.add(SETTINGS.getStatusResponse("400_SCRN_1", node));
                 return false;
             }
 
             if ("items".equalsIgnoreCase(screenNode.getScreenType())) {
 
-                screenNode.getNodeItems().forEach((item) -> {
+                for (HashMap<String, String> item : screenNode.getNodeItems()) {
                     String nextScreen = item.get("nextScreen");
                     if (!"end".equalsIgnoreCase(nextScreen)) {
                         requiredScreens.add(item.get("nextScreen"));
+                    } else {
+                        if (!screenNode.getNodeExtraData().containsKey("exit_message")) {
+                            errors.add(SETTINGS.getStatusResponse("400_SCRN", "exit_message >> " + screenNode.getNodeName()));
+                            return false;
+                        }
+
                     }
-                });
+                }
             } else {
                 if (!"end".equalsIgnoreCase(screenNode.getScreenNext())) {
                     requiredScreens.add(screenNode.getScreenNext());
+                } else {
+                    if (!screenNode.getNodeExtraData().containsKey("exit_message")) {
+                        errors.add(SETTINGS.getStatusResponse("400_SCRN", "exit_message >> " + screenNode.getNodeName()));
+                        return false;
+                    }
+                    // check extradata
                 }
 
             }
@@ -104,6 +123,7 @@ public class FlowProcessor {
         screenNode.setScreenText(nodeMap.get("screenText").toString());
         screenNode.setScreenType(nodeMap.get("screenType").toString());
         screenNode.setShortCode(nodeMap.get("shortCode").toString());
+        screenNode.setNodeExtraData((HashMap<String, String>) nodeMap.get("nodeExtraData"));
 
         if (!screenNode.validate()) {
             return new ScreenNode();

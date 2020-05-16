@@ -3,5 +3,6 @@
     "2":"Invalid Input",
     "3":"Service Temporarily unavailable",
     "4":"Invalid shortCode",
-    "5":"Screen not available in the flow"
+    "5":"Screen not available in the flow",
+    "6":"Display error"
 }

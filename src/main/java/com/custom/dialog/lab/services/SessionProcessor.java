@@ -5,14 +5,11 @@
  */
 package com.custom.dialog.lab.services;
 
-
 import com.custom.dialog.lab.utils.Props;
-import com.custom.dialog.lab.utils.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -30,18 +27,15 @@ public class SessionProcessor {
     private HashMap<String, Object> extraData;
 
     private List<String> errors = new ArrayList<>();
-    
-    
+
     private final static Logger LOGGER = Logger.getLogger(SessionProcessor.class.getName());
     private static final Props SETTINGS = new Props();
 
+    private String exit_message = new String();
+
     public SessionProcessor() {
     }
-    
-    
-    
-    
-    
+
     public SessionProcessor(String phoneNumber, String sessionId, String input, HashMap<String, Object> extraData) {
         this.phoneNumber = phoneNumber;
         this.sessionId = sessionId;
@@ -81,26 +75,45 @@ public class SessionProcessor {
         this.sessionId = sessionId;
     }
 
-    public Map screenNavigate(Map<String,Object> sessionData) {
+    public Map<String,String> screenNavigate(Map<String, Object> sessionData) {
+        
+        
         HashMap<String, String> response = new HashMap<>();
         // means it is the first screen
-        if ( sessionData == null || sessionData.isEmpty()) {
+        if (sessionData == null || sessionData.isEmpty()) {
+
             response.put("shortCode", input);
             response.put("nextScreen", "start_page");
+
+            // capture 1st input
+            extraData.put("start_page", input);
             return response;
 
         }
-        
-        
-        Map<String,Object> currentScreenData = (Map<String,Object>)sessionData.get("screenNode");
+
+        Map<String, Object> currentScreenData = (Map<String, Object>) sessionData.get("screenNode");
         String screenType = String.valueOf(currentScreenData.get("screenType"));
         String shortCode = String.valueOf(currentScreenData.get("shortCode"));
 
+        extraData = (HashMap<String, Object>) sessionData.get("screenNode");
+
+        String currentNode = String.valueOf(currentScreenData.get("nodeName"));
+
         // session already existed
-        if ("raw_input".equalsIgnoreCase(screenType) || "options".equalsIgnoreCase(screenType)) {
+        if ("raw_input".equalsIgnoreCase(screenType)) {
             String screenNext = currentScreenData.get("screenNext").toString();
             response.put("shortCode", shortCode);
             response.put("nextScreen", screenNext);
+            extraData.put(currentNode, input);
+            return response;
+
+        } else if ("options".equalsIgnoreCase(screenType)) {
+            String screenNext = currentScreenData.get("screenNext").toString();
+            response.put("shortCode", shortCode);
+            response.put("nextScreen", screenNext);
+            List<String> nodeOptions = (List<String>) currentScreenData.get("nodeOptions");
+            String selection = nodeOptions.get(Integer.parseInt(input) - 1);
+            extraData.put(currentNode, selection);
             return response;
 
         } else if ("items".equalsIgnoreCase(screenType)) {
@@ -108,6 +121,8 @@ public class SessionProcessor {
             String nextScreen;
             try {
                 nextScreen = nodeItems.get(Integer.parseInt(input) - 1).get("nextScreen");
+                String selection = nodeItems.get(Integer.parseInt(input) - 1).get("displayText");
+                extraData.put(currentNode, selection);
             } catch (Exception ex) {
                 // Invalid input
                 errors.add(SETTINGS.getFlowError("2"));
@@ -124,31 +139,21 @@ public class SessionProcessor {
         }
     }
 
-    public String displayText(Map<String,Object> screenData) {
-        
-        LOGGER.log(Level.INFO,
-                Utils.prelogString(sessionId,
-                        Utils.getCodelineNumber(), "Data submitted to function :: " + screenData),
-                screenData);
-        if (screenData.isEmpty() ) {
-            LOGGER.log(Level.SEVERE,
-                    Utils.prelogString(sessionId,
-                            Utils.getCodelineNumber(), "failed database transaction or invalid screen type"),
-                    screenData);
+    public String displayText(Map<String, Object> screenData) {
+
+        if (screenData.isEmpty()) {
             return SETTINGS.getFlowError("3");
         }
-        
-         if(!errors.isEmpty()){
-             return errors.get(0);
-         }
-        
-        Map<String,Object> retrievedScreen = (Map<String,Object>)screenData.get("screenNode");
+
+        if (!errors.isEmpty()) {
+            return errors.get(0);
+        }
+
+        Map<String, Object> retrievedScreen = (Map<String, Object>) screenData.get("screenNode");
 
         String screenType = retrievedScreen.get("screenType").toString();
         String screenText = retrievedScreen.get("screenText").toString();
-        if ("raw_input".equalsIgnoreCase(screenType)) {
-            return screenText;
-        } else if ("items".equalsIgnoreCase(screenType)) {
+        if ("items".equalsIgnoreCase(screenType)) {
 
             List<HashMap<String, String>> nodeItems = (List<HashMap<String, String>>) retrievedScreen.get("nodeItems");
             int count = 1;
@@ -156,8 +161,7 @@ public class SessionProcessor {
                 screenText += "\n" + count + ". " + String.valueOf(item.get("displayText"));
                 count++;
             }
-            return screenText;
-        } else {
+        } else if ("options".equalsIgnoreCase(screenType)) {
             int count = 1;
             List<String> nodeOptions = (List<String>) retrievedScreen.get("nodeOptions");
 
@@ -165,10 +169,42 @@ public class SessionProcessor {
                 screenText += "\n" + count + ". " + opt;
                 count++;
             }
+        }
+        return dynamicText(screenText);
+    }
 
+    public String dynamicText(String screenText) {
+        if (!screenText.contains("^")) {
             return screenText;
         }
+        for (String key : extraData.keySet()) {
+            String placeholder = "^" + key + "^";
+            if (screenText.contains(placeholder)) {
+                screenText = screenText.replace(placeholder, extraData.get(key).toString());
+            }
+        }
 
+        if (screenText.contains("^")) {
+            return SETTINGS.getFlowError("6");
+        }
+
+        return screenText;
+    }
+
+    public HashMap<String, Object> prepareArchiveSessions(String status, String serviceCode) {
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("sessionId", sessionId);
+        payload.put("serviceCode", serviceCode);
+        payload.put("status", status);
+        payload.put("phoneNumber", phoneNumber);
+        return payload;
+    }
+
+    public HashMap<String, Object> prepareArchiveJourney(String displayText, String userInput) {
+        HashMap<String, Object> payload = new HashMap<>();
+        payload.put("displayText", displayText);
+        payload.put("userInput", userInput);
+        return payload;
     }
 
     public Map getNextScreenDetails(Map flow, String nextScreen) {
@@ -195,6 +231,5 @@ public class SessionProcessor {
     public List<String> getErrors() {
         return errors;
     }
-    
-    
+
 }
