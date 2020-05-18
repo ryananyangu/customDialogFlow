@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 public class JwtUtil {
 
-    @Value("${property_key_name:S34KR@T3}")
+    @Value("${security.jwt.secret:S34KR@T3}")
     private String SECRET_KEY;
 
     public String extractUsername(String token) {
@@ -55,7 +55,7 @@ public class JwtUtil {
     private String createToken(Map<String, Object> claims, String subject) {
 
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
 

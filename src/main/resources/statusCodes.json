@@ -15,6 +15,6 @@
     "404_FLW_1" : "Flow Not found ",
     "500_STS_3" : "System error retrieving data",
     "400":"Invalid payload",
-    "401":"Invalid Credentials",
+    "401":"Access denied  Invalid Or Expired JWT",
     "400_USR_1":"User already Exists"
 }
