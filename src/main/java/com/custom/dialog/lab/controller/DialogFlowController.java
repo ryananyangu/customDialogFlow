@@ -53,10 +53,8 @@ public class DialogFlowController {
         try {
             DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session).get().get();
             Map sessionData = ss_snapshot.getData();
-            Map<String,String> data = session_menu.screenNavigate(sessionData);
+            Map<String, String> data = session_menu.screenNavigate(sessionData);
 
-            
-            
             if (data.isEmpty()) {
                 HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
                         "INCOMPLETE",
@@ -69,22 +67,20 @@ public class DialogFlowController {
                 firestore.collection("archived_sessions").document(session).collection("journey").document().set(journey).get();
                 return session_menu.getErrors().get(0);
             }
-            
 
             // Check if end of the flow
-            if ("end".equalsIgnoreCase(data.get("nextScreen")) ) {
-                
-                HashMap<String,Object>  nodedata = (HashMap<String,Object>)sessionData.get("screenNode");
-                HashMap<String,String>  extraNodedata = (HashMap<String,String>)nodedata.get("nodeExtraData");
-                
+            if ("end".equalsIgnoreCase(data.get("nextScreen"))) {
+
+                HashMap<String, Object> nodedata = (HashMap<String, Object>) sessionData.get("screenNode");
+                HashMap<String, String> extraNodedata = (HashMap<String, String>) nodedata.get("nodeExtraData");
+
                 HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
                         "COMPLETE",
                         data.get("shortCode")
                 );
-                
-                
+
                 HashMap<String, Object> journey = session_menu.prepareArchiveJourney(extraNodedata.get("exit_message"), input);
-                
+
                 firestore.collection("sessions").document(session).delete().get();
                 firestore.collection("archived_sessions").document(session).set(bkp_ssession).get();
                 firestore.collection("archived_sessions").document(session).collection("journey").document().set(journey).get();
@@ -117,11 +113,15 @@ public class DialogFlowController {
     @PostMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String bulkCreateScreen(@RequestBody Object screens) {
         FlowProcessor flowProcessor = new FlowProcessor();
+        DocumentReference reference = firestore.collection(FLOW_PATH).document(flowProcessor.getShortcode());
 
         if (flowProcessor.isValidFlow(screens)) {
 
             try {
-                firestore.collection(FLOW_PATH).document(flowProcessor.getShortcode()).set(flowProcessor.getScreenData()).get();
+                if (reference.get().get().exists()) {
+                    return SETTINGS.getStatusResponse("400_SCRN", "Shortcode already exists").toString();
+                }
+                reference.set(flowProcessor.getScreenData()).get();
             } catch (InterruptedException | ExecutionException ex) {
                 Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
                 return SETTINGS.getStatusResponse("500_STS_3", ex.getLocalizedMessage()).toString();
