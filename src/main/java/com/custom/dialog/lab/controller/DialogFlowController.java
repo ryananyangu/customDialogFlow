@@ -184,10 +184,21 @@ public class DialogFlowController {
     @ResponseBody
     @GetMapping(path = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getShortCodes() {
-        List<String> configuredCodes = new ArrayList<>();
-        firestore.collection(FLOW_PATH).listDocuments().forEach((action)
-                -> configuredCodes.add(action.getId()
-                ));
+        HashMap<String, List<String>> configuredCodes = new HashMap<>();
+        configuredCodes.put("ussd", new ArrayList<>());
+        configuredCodes.put("whatsapp", new ArrayList<>());
+        configuredCodes.put("other", new ArrayList<>());
+        for (DocumentReference doc : firestore.collection(FLOW_PATH).listDocuments()) {
+
+            if (doc.getId().startsWith("*") && doc.getId().endsWith("#")) {
+                configuredCodes.get("ussd").add(doc.getId());
+
+            } else if (doc.getId().startsWith("+") || doc.getId().startsWith("0")) {
+                configuredCodes.get("whatsapp").add(doc.getId());
+            } else {
+                configuredCodes.get("other").add(doc.getId());
+            }
+        }
         return SETTINGS.getStatusResponse("200_SCRN", configuredCodes).toString();
     }
 
