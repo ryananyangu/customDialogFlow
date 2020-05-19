@@ -113,10 +113,10 @@ public class DialogFlowController {
     @PostMapping(path = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String bulkCreateScreen(@RequestBody Object screens) {
         FlowProcessor flowProcessor = new FlowProcessor();
-        DocumentReference reference = firestore.collection(FLOW_PATH).document(flowProcessor.getShortcode());
 
         if (flowProcessor.isValidFlow(screens)) {
-
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + flowProcessor.getShortcode());
+            DocumentReference reference = firestore.collection("menus").document(flowProcessor.getShortcode());
             try {
                 if (reference.get().get().exists()) {
                     return SETTINGS.getStatusResponse("400_SCRN", "Shortcode already exists").toString();
