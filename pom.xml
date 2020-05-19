@@ -57,7 +57,6 @@
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
-                                            <!--COMPLEXITY -->
                                             <value>COVEREDRATIO</value>
                                             <minimum>0.00</minimum>
                                         </limit>
