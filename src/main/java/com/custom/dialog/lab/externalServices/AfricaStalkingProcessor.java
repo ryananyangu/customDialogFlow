@@ -5,7 +5,6 @@
  */
 package com.custom.dialog.lab.externalServices;
 
-
 import com.custom.dialog.lab.services.SessionProcessor;
 import com.custom.dialog.lab.utils.Props;
 import com.google.cloud.firestore.Firestore;
@@ -23,10 +22,10 @@ import org.springframework.stereotype.Service;
  * @author jovixe
  */
 @Service
-public class AfricaStalkingProcessor extends SessionProcessor{
+public class AfricaStalkingProcessor extends SessionProcessor {
 
     private static final Props SETTINGS = new Props();
-    
+
     private final static Logger LOGGER = Logger.getLogger(AfricaStalkingProcessor.class.getName());
 
     @Autowired
@@ -35,35 +34,26 @@ public class AfricaStalkingProcessor extends SessionProcessor{
     public AfricaStalkingProcessor() {
     }
 
-    
-    
-
-    
     public AfricaStalkingProcessor(String phoneNumber, String sessionId, String input, HashMap<String, Object> extraData) {
         super(phoneNumber, sessionId, input, extraData);
     }
 
-    
-    
     @Override
     public String displayText(Map<String, Object> screenData) {
 
         if (screenData.isEmpty()) {
-
             return "END "+SETTINGS.getFlowError("3");
         }
 
         if (!this.getErrors().isEmpty()) {
-            return "END " + getErrors().get(0);
+            return "END "+this.getErrors().get(0);
         }
 
         Map<String, Object> retrievedScreen = (Map<String, Object>) screenData.get("screenNode");
 
         String screenType = retrievedScreen.get("screenType").toString();
         String screenText = retrievedScreen.get("screenText").toString();
-        if ("raw_input".equalsIgnoreCase(screenType)) {
-            return "CON "+screenText;
-        } else if ("items".equalsIgnoreCase(screenType)) {
+        if ("items".equalsIgnoreCase(screenType)) {
 
             List<HashMap<String, String>> nodeItems = (List<HashMap<String, String>>) retrievedScreen.get("nodeItems");
             int count = 1;
@@ -71,8 +61,7 @@ public class AfricaStalkingProcessor extends SessionProcessor{
                 screenText += "\n" + count + ". " + String.valueOf(item.get("displayText"));
                 count++;
             }
-            return "CON "+screenText;
-        } else {
+        } else if ("options".equalsIgnoreCase(screenType)) {
             int count = 1;
             List<String> nodeOptions = (List<String>) retrievedScreen.get("nodeOptions");
 
@@ -80,9 +69,7 @@ public class AfricaStalkingProcessor extends SessionProcessor{
                 screenText += "\n" + count + ". " + opt;
                 count++;
             }
-
-            return "CON "+screenText;
         }
-
+        return "CON "+dynamicText(screenText);
     }
 }

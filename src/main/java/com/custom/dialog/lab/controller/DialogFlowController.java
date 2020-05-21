@@ -115,7 +115,6 @@ public class DialogFlowController {
         FlowProcessor flowProcessor = new FlowProcessor();
 
         if (flowProcessor.isValidFlow(screens)) {
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" + flowProcessor.getShortcode());
             DocumentReference reference = firestore.collection("menus").document(flowProcessor.getShortcode());
             try {
                 if (reference.get().get().exists()) {

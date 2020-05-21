@@ -48,34 +48,72 @@ public class ExternalProcessors {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam Map<String, String> session) {
-//        System.out.println(session+ " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        
+        String input = session.get("serviceCode");
+        if (!session.get("text").isEmpty()) {
+            String[] inputs = session.get("text").split("\\*");
+            input = inputs[inputs.length - 1];
+        }
+        
+        AfricaStalkingProcessor session_menu = new AfricaStalkingProcessor(session.get("phoneNumber"), session.get("sessionId"), input, new HashMap<>());
         try {
-            // phoneNumber=%2B254702079491&serviceCode=%2A384%2A11469%23&text=&sessionId=ATUid_1c1e09269ff2b366033529d495e083e5&networkCode=99999
-            
-            String input = session.get("serviceCode");
-            if (!session.get("text").isEmpty()) {
-                String[] inputs = session.get("text").split("\\*");
-                input = inputs[inputs.length - 1];
-            }
-            
             DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session.get("sessionId")).get().get();
-            AfricaStalkingProcessor session_menu = new AfricaStalkingProcessor(session.get("phoneNumber"), session.get("sessionId"), input, new HashMap<>());
-            
-            Map data = session_menu.screenNavigate((Map<String, Object>) ss_snapshot.getData());
-            
+            Map sessionData = ss_snapshot.getData();
+            Map<String, String> data = session_menu.screenNavigate(sessionData);
+
             if (data.isEmpty()) {
-                return "END "+SETTINGS.getFlowError("3");//session_menu.getErrors().get(0);
+                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
+                        "INCOMPLETE",
+                        data.get("shortCode")
+                );
+
+                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(session_menu.getErrors().get(0), input);
+
+                firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
+                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
+                return "END "+session_menu.getErrors().get(0);
             }
-            DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode").toString()).get().get();
-            
-            Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen").toString());
+
+            // Check if end of the flow
+            if ("end".equalsIgnoreCase(data.get("nextScreen"))) {
+
+                HashMap<String, Object> nodedata = (HashMap<String, Object>) sessionData.get("screenNode");
+                HashMap<String, String> extraNodedata = (HashMap<String, String>) nodedata.get("nodeExtraData");
+
+                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
+                        "COMPLETE",
+                        data.get("shortCode")
+                );
+
+                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(extraNodedata.get("exit_message"), input);
+
+                firestore.collection("sessions").document(session.get("sessionId")).delete().get();
+                firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
+                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
+
+                return "END "+extraNodedata.get("exit_message");
+            }
+            DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode")).get().get();
+            Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen"));
+            String display_msg = session_menu.displayText(data2);
+            data2.put("display_msg", display_msg);
             firestore.collection("sessions").document(session.get("sessionId")).set(data2).get();
-            
-            return session_menu.displayText(data2);
+
+            HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
+                    "INCOMPLETE",
+                    data.get("shortCode")
+            );
+
+            HashMap<String, Object> journey = session_menu.prepareArchiveJourney(display_msg, input);
+
+            firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
+            firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
+            return display_msg;
         } catch (InterruptedException | ExecutionException ex) {
-            Logger.getLogger(ExternalProcessors.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
             return "END "+SETTINGS.getFlowError("3");
         }
+    
     }
 
 }
