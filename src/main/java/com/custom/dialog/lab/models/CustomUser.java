@@ -27,7 +27,7 @@ public class CustomUser extends User {
 
     public CustomUser(String username, String password, boolean enabled, boolean accountNonExpired,
             boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities,
-            String organization) {
+            Organization organization) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.email = username;
         this.organization = organization;
@@ -37,7 +37,7 @@ public class CustomUser extends User {
     @DocumentId
     private String email;
 
-    private String organization;
+    private Organization organization;
 
     private Date dateCreated;
 
@@ -67,11 +67,11 @@ public class CustomUser extends User {
         this.dateLastModified = dateLastModified;
     }
 
-    public void setOrganization(String organization) {
+    public void setOrganization(Organization organization) {
         this.organization = organization;
     }
 
-    public String getOrganization() {
+    public Organization getOrganization() {
         return organization;
     }
 

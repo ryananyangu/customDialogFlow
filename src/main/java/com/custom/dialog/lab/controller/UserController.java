@@ -6,6 +6,7 @@
 package com.custom.dialog.lab.controller;
 
 import com.custom.dialog.lab.models.CustomUser;
+import com.custom.dialog.lab.models.Organization;
 import com.custom.dialog.lab.services.CustomUserDetailsService;
 import com.custom.dialog.lab.utils.JwtUtil;
 import com.custom.dialog.lab.utils.Props;
@@ -98,7 +99,7 @@ public class UserController {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode(request.get("password"));
-        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),"Saada");
+        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),new Organization());
 
         DocumentReference reference = firestore.collection("users").document(user.getEmail());
         if (reference.get().get().exists()) {
@@ -115,7 +116,7 @@ public class UserController {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode(request.get("password"));
-        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),"Saada");
+        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),new Organization());
 
         DocumentReference reference = firestore.collection("users").document(user.getEmail());
         if (reference.get().get().exists() && request.get("username").equalsIgnoreCase(username)) {

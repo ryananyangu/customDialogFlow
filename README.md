@@ -55,4 +55,10 @@
     - ScreenType - enum->Strings(raw_input,items,options)
     - ScreenText - String
 
+    Organization --> Name
+    - Organization name 
+    - Datecreated = DateTimeOnCreation
+    - DateUpdated = DateTimeCurrent
+    - Contact
+
 Usage of enums
