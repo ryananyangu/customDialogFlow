@@ -98,7 +98,7 @@ public class UserController {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode(request.get("password"));
-        CustomUser user = new CustomUser(request.get("username"), hashedPassword);
+        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),"Saada");
 
         DocumentReference reference = firestore.collection("users").document(user.getEmail());
         if (reference.get().get().exists()) {
@@ -115,7 +115,7 @@ public class UserController {
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String hashedPassword = passwordEncoder.encode(request.get("password"));
-        CustomUser user = new CustomUser(request.get("username"), hashedPassword);
+        CustomUser user = new CustomUser(request.get("username"), hashedPassword,true,true,true,false,new ArrayList<>(),"Saada");
 
         DocumentReference reference = firestore.collection("users").document(user.getEmail());
         if (reference.get().get().exists() && request.get("username").equalsIgnoreCase(username)) {

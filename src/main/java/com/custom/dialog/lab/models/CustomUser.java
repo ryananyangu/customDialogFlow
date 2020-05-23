@@ -10,26 +10,38 @@ package com.custom.dialog.lab.models;
  * @author jovixe
  */
 import com.google.cloud.firestore.annotation.DocumentId;
-import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+
 import org.springframework.cloud.gcp.data.firestore.Document;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
 @Document(collectionName = "users")
-public class CustomUser implements Serializable{
+public class CustomUser extends User {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = -755490062669394115L;
+
+    public CustomUser(String username, String password, boolean enabled, boolean accountNonExpired,
+            boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities,
+            String organization) {
+        super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
+        this.email = username;
+        this.organization = organization;
+
+    }
 
     @DocumentId
     private String email;
 
-    private String password;
-    
     private String organization;
 
-    public CustomUser() {
-    }
+    private Date dateCreated;
 
-    public CustomUser(String username, String password) {
-        this.email = username;
-        this.password = password;
-    }
+    private Date dateLastModified;
 
     public void setEmail(String email) {
         this.email = email;
@@ -39,20 +51,28 @@ public class CustomUser implements Serializable{
         return email;
     }
 
+    public Date getDateCreated() {
+        return dateCreated;
+    }
+
+    public Date getDateLastModified() {
+        return dateLastModified;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setDateLastModified(Date dateLastModified) {
+        this.dateLastModified = dateLastModified;
+    }
+
     public void setOrganization(String organization) {
         this.organization = organization;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getOrganization() {
         return organization;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
 }

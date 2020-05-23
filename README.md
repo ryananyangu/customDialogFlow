@@ -5,56 +5,54 @@
 [![Code Grade](https://www.code-inspector.com/project/4161/score/svg)](https://frontend.code-inspector.com/public/project/4161/customDialogFlow/dashboard)
 
 
-## Node Details:
-- NodePages(int, default:1) 
-- NodeHeader(txt, default:empty)
-- NodeName(str, required:true)  
-- NodeData (list:str->HeaderName(s),reuired:true)
-- NodeCurrentPage (int, default:1)
-- NodeId(int, required:true)
-- NodeActiveStatus(bool, default:true)
-- NodeType(enum:{IM:Input Mode,SM: Selection Mode, EC: External Call, RT: Routed From Process response(Validation)},default:IM)
-- NodeExtraData(object, empty:true) // For EC must have SID
+## Refactoring 
+1. Models
+    User --> System Users 
+    - Organization = String
+    - Active = Boolean
+    - First Name = String 
+    - Last Name = String
+    - Roles = list[SPRING INTERNAL]
+    - Email Address = String 
+    - Date Created = DateTimeOnCreation
+    - Last Updated = DateTimeLastModified
 
-## Graph Operations required
-- Search 
-- Traversals 
-- Insertions 
+    Journey --> Exact incomming message and System generated response to the question
+    - Incoming request = String
+    - Response Text = String
 
-## Consider node input types 
+    ArchiveSession --> Collection of sessions and journey
+    - SessionID = String 
+    - Dialing number = String
+    - ServiceCode = String
+    - Status = String enum (FAILED,INCOMPLETE,COMPLETE)
+    - Datecreated = DateTimeOnCreation
+    - DateUpdated = DateTimeCurrent
+    - SessionMessages = list[Sessions] 
 
-1. input mode 
-2. Selection mode
-3. processing mode/external call (Http calls and Transformation functionality){call external system i.e. config app}
-4. If the node has no children (in NodeData) then it is the final node.
+    Session --> Current active session
+    - Dialling Number **
+    - ExtraData
+    - Journey = 
+    - SessionID
+    - Datecreated = DateTimeOnCreation
+    - DateUpdated = DateTimeCurrent
 
-## Below will be system calculated operation(s) conducted on each node
+    Menu --> collection of screens
+    - ShortCode = String
+    - Screens = list[Screen]
+    - Organization = String
+    - Datecreated = DateTimeOnCreation
+    - DateUpdated = DateTimeCurrent
 
-    a) Next --- Only where pages are more than than one and there is a page to move to.
-    b) Previous --- available on paginated states only and there is a previous page
-    c) Exit (identifiers to be clearly defined) --- available on all Nodes and pages
-    d) Home (Start screen) --- on all screens except the first one and the *exit thank you* screen
-    e) Creation of paths between nodes based on **NodeData**
-    f) Total pages within the nodeData
-    g) input valaidation of **Input mode**
+    Screen --> User defined message meta data
+    - NodeName - String
+    - isScreenActive - Boolean
+    - nodeExtraData - HashMap
+    - nodeItems - List[HashMaps]
+    - nodeOptions - List[Strings]
+    - screenMext - String
+    - ScreenType - enum->Strings(raw_input,items,options)
+    - ScreenText - String
 
-## Implemention Considerations
-
-    i.   WebFrameworks (SpringWeb:java,Django:python)
-    ii.  Graph libraries (custom:java, JGraphT:java)
-    iii. Caching of structure/Flow (Esearch,Redis)
-
-## Success measure points
-
-1. Processing complexities (Mainly time and size)
-2. Dynamic loading
-3. No dev work (Or very much limited)
-
-    1. if in input mode(IM) : The display test is the NodeHeader
-    2. if 2 or more IM's follow each other the Only the last IM is expected to have nodeData
-        a. That is greater than 1
-        b. all its predecessors will have nodeData that only contains the name of their child... i.e consecutive IM's have only on child
-    3. if not root node : node name can be null hence the node name will be gotten from the NOde data list of parent
-
-### Sample request Format
-https://dialogflw.uc.r.appspot.com/api/v1/get/atussd/flow?msisdn=254702079461&session=8794587&input=2
+Usage of enums
