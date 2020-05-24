@@ -12,7 +12,6 @@ package com.custom.dialog.lab;
 import com.custom.dialog.lab.services.CustomUserDetailsService;
 import com.custom.dialog.lab.utils.JwtUtil;
 import com.custom.dialog.lab.utils.Props;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,7 +30,8 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Props SETTINGS = new Props();
+    @Autowired
+    private Props props;
 
     @Autowired
     private CustomUserDetailsService userDetailsService;
@@ -71,7 +71,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         } catch (JwtException | ServletException e) {
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(403);
-            response.getWriter().write(SETTINGS.getStatusResponse("401", e.getLocalizedMessage()).toString());
+            response.getWriter().write(props.getStatusResponse("401", e.getLocalizedMessage()).toString());
         }
 
     }

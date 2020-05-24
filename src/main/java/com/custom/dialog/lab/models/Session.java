@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "sessions")
 public class Session implements Serializable {
@@ -22,8 +24,12 @@ public class Session implements Serializable {
 
     private HashMap<String, Object> extraData;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateCreated;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateLastModified;
 
     public Date getDateCreated() {

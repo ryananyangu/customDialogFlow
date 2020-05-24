@@ -48,30 +48,32 @@ public class ExternalProcessors {
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public String sessionNavigator(@RequestParam Map<String, String> session) {
-        
+
         String input = session.get("serviceCode");
         if (!session.get("text").isEmpty()) {
             String[] inputs = session.get("text").split("\\*");
             input = inputs[inputs.length - 1];
         }
-        
-        AfricaStalkingProcessor session_menu = new AfricaStalkingProcessor(session.get("phoneNumber"), session.get("sessionId"), input, new HashMap<>());
+
+        AfricaStalkingProcessor session_menu = new AfricaStalkingProcessor(session.get("phoneNumber"),
+                session.get("sessionId"), input, new HashMap<>());
         try {
-            DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session.get("sessionId")).get().get();
+            DocumentSnapshot ss_snapshot = firestore.collection("sessions").document(session.get("sessionId")).get()
+                    .get();
             Map sessionData = ss_snapshot.getData();
             Map<String, String> data = session_menu.screenNavigate(sessionData);
 
             if (data.isEmpty()) {
-                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
-                        "INCOMPLETE",
-                        data.get("shortCode")
-                );
+                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions("INCOMPLETE",
+                        data.get("shortCode"));
 
-                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(session_menu.getErrors().get(0), input);
+                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(session_menu.getErrors().get(0),
+                        input);
 
                 firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
-                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
-                return "END "+session_menu.getErrors().get(0);
+                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey")
+                        .document().set(journey).get();
+                return "END " + session_menu.getErrors().get(0);
             }
 
             // Check if end of the flow
@@ -80,18 +82,18 @@ public class ExternalProcessors {
                 HashMap<String, Object> nodedata = (HashMap<String, Object>) sessionData.get("screenNode");
                 HashMap<String, String> extraNodedata = (HashMap<String, String>) nodedata.get("nodeExtraData");
 
-                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
-                        "COMPLETE",
-                        data.get("shortCode")
-                );
+                HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions("COMPLETE",
+                        data.get("shortCode"));
 
-                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(extraNodedata.get("exit_message"), input);
+                HashMap<String, Object> journey = session_menu.prepareArchiveJourney(extraNodedata.get("exit_message"),
+                        input);
 
                 firestore.collection("sessions").document(session.get("sessionId")).delete().get();
                 firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
-                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
+                firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey")
+                        .document().set(journey).get();
 
-                return "END "+extraNodedata.get("exit_message");
+                return "END " + extraNodedata.get("exit_message");
             }
             DocumentSnapshot sc_snapshot = firestore.collection("menus").document(data.get("shortCode")).get().get();
             Map data2 = session_menu.getNextScreenDetails(sc_snapshot.getData(), data.get("nextScreen"));
@@ -99,21 +101,20 @@ public class ExternalProcessors {
             data2.put("display_msg", display_msg);
             firestore.collection("sessions").document(session.get("sessionId")).set(data2).get();
 
-            HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions(
-                    "INCOMPLETE",
-                    data.get("shortCode")
-            );
+            HashMap<String, Object> bkp_ssession = session_menu.prepareArchiveSessions("INCOMPLETE",
+                    data.get("shortCode"));
 
             HashMap<String, Object> journey = session_menu.prepareArchiveJourney(display_msg, input);
 
             firestore.collection("archived_sessions").document(session.get("sessionId")).set(bkp_ssession).get();
-            firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey").document().set(journey).get();
+            firestore.collection("archived_sessions").document(session.get("sessionId")).collection("journey")
+                    .document().set(journey).get();
             return display_msg;
         } catch (InterruptedException | ExecutionException ex) {
             Logger.getLogger(DialogFlowController.class.getName()).log(Level.SEVERE, null, ex);
-            return "END "+SETTINGS.getFlowError("3");
+            return "END " + SETTINGS.getFlowError("3");
         }
-    
+
     }
 
 }

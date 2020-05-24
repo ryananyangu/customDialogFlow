@@ -3,9 +3,11 @@ package com.custom.dialog.lab.models;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "organizations")
 public class Organization implements Serializable{
@@ -19,8 +21,12 @@ public class Organization implements Serializable{
 
     private String email;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateCreated;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateLastModified;
 
 
@@ -61,6 +67,7 @@ public class Organization implements Serializable{
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
 
 
 
