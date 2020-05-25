@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONObject;
+
 public class Screen {
     private boolean isScreenActive = true;
     private String screenNext = new String();
@@ -19,6 +21,7 @@ public class Screen {
 
     public void validate() throws Exception {
         if (getScreenType().isEmpty() || getNodeName().isEmpty() || getScreenText().isEmpty()) {
+            System.out.println(new JSONObject(this).toString());
             throw new Exception("Validation failed, Mandatory fields left empty");
         }
     }
@@ -77,6 +80,7 @@ public class Screen {
     public String getScreenType() {
         return screenType;
     }
+
     public String getShortCode() {
         return shortCode;
     }
@@ -88,6 +92,7 @@ public class Screen {
     public void setNodeItems(List<HashMap<String, String>> nodeItems) {
         this.nodeItems = nodeItems;
     }
+
     public void setShortCode(String shortCode) {
         this.shortCode = shortCode;
     }
@@ -137,7 +142,8 @@ public class Screen {
         return this;
     }
 
-    public void endScreenValidator() throws Exception{
+    public List<String> endScreenValidator() throws Exception {
+        List<String> requiredScreens = new ArrayList<>();
         if ("items".equalsIgnoreCase(getScreenType())) {
 
             for (HashMap<String, String> item : getNodeItems()) {
@@ -148,7 +154,10 @@ public class Screen {
                         throw new Exception("exit_message >> " + getNodeName());
                     }
 
+                } else {
+                    requiredScreens.add(nextScreen);
                 }
+
             }
         } else {
             if ("end".equalsIgnoreCase(getScreenNext())) {
@@ -156,8 +165,12 @@ public class Screen {
                 if (!getNodeExtraData().containsKey("exit_message")) {
                     throw new Exception("exit_message >> " + getNodeName());
                 }
+
+            } else {
+                requiredScreens.add(getScreenNext());
             }
 
         }
+        return requiredScreens;
     }
 }

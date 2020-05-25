@@ -13,7 +13,7 @@ import org.springframework.cloud.gcp.data.firestore.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "menus")
-public class Flow implements Serializable{
+public class Flow implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -28,12 +28,9 @@ public class Flow implements Serializable{
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateLastModified;
 
-
-    private HashMap<String,Screen> screens;
+    private HashMap<String, Screen> screens;
 
     private String organization;
-
-
 
     public Date getDateCreated() {
         return dateCreated;
@@ -46,15 +43,18 @@ public class Flow implements Serializable{
     public String getOrganization() {
         return organization;
     }
+
     public HashMap<String, Screen> getScreens() {
         return screens;
     }
+
     public static long getSerialversionuid() {
         return serialVersionUID;
     }
+
     public String getShortCode() {
         return shortCode;
-    } 
+    }
 
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
@@ -63,17 +63,20 @@ public class Flow implements Serializable{
     public void setDateLastModified(Date dateLastModified) {
         this.dateLastModified = dateLastModified;
     }
+
     public void setOrganization(String organization) {
         this.organization = organization;
     }
+
     public void setScreens(HashMap<String, Screen> screens) {
         this.screens = screens;
     }
+
     public void setShortCode(String shortCode) {
         this.shortCode = shortCode;
     }
 
-    public void isValidFlow() throws Exception{
+    public void isValidFlow() throws Exception {
 
         List<String> requiredScreens = new ArrayList<>();
         List<String> validatedScreens = new ArrayList<>();
@@ -94,13 +97,15 @@ public class Flow implements Serializable{
             }
 
             Screen node = screens.get(screen);
-                node.validate();
-                node.endScreenValidator();
+            node.setNodeName(screen);
+            node.validate();
+            node.endScreenValidator().forEach(item -> {
+                requiredScreens.add(item);
+            });
 
-            requiredScreens.add(node.getScreenNext());
             validatedScreens.add(node.getNodeName());
             requiredScreens.remove(screen);
-            
+
         }
 
     }
