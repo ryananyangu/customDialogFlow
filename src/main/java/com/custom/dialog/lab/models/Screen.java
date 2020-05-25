@@ -14,6 +14,9 @@ public class Screen {
     private List<HashMap<String, String>> nodeItems = new ArrayList<>();
     private HashMap<String, String> nodeExtraData = new HashMap<>();
 
+    // TODO: ShortCode should be remove in future versions
+    private String shortCode;
+
     public void validate() throws Exception {
         if (getScreenType().isEmpty() || getNodeName().isEmpty() || getScreenText().isEmpty()) {
             throw new Exception("Validation failed, Mandatory fields left empty");
@@ -74,6 +77,9 @@ public class Screen {
     public String getScreenType() {
         return screenType;
     }
+    public String getShortCode() {
+        return shortCode;
+    }
 
     public void setNodeExtraData(HashMap<String, String> nodeExtraData) {
         this.nodeExtraData = nodeExtraData;
@@ -81,6 +87,9 @@ public class Screen {
 
     public void setNodeItems(List<HashMap<String, String>> nodeItems) {
         this.nodeItems = nodeItems;
+    }
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
     }
 
     public void setNodeName(String nodeName) {
@@ -109,5 +118,46 @@ public class Screen {
 
     public boolean isActive() {
         return isScreenActive;
+    }
+
+    public Screen validateScreen() throws Exception {
+
+        validate();
+
+        if (getScreenType().equalsIgnoreCase("raw_input")) {
+            validateRawInput();
+        } else if (getScreenType().equalsIgnoreCase("options")) {
+            validateOptions();
+
+        } else if (getScreenType().equalsIgnoreCase("items")) {
+            validateItems();
+        } else {
+            throw new Exception("Undefined screentType >> " + getScreenType());
+        }
+        return this;
+    }
+
+    public void endScreenValidator() throws Exception{
+        if ("items".equalsIgnoreCase(getScreenType())) {
+
+            for (HashMap<String, String> item : getNodeItems()) {
+                String nextScreen = item.get("nextScreen");
+                if ("end".equalsIgnoreCase(nextScreen)) {
+
+                    if (!getNodeExtraData().containsKey("exit_message")) {
+                        throw new Exception("exit_message >> " + getNodeName());
+                    }
+
+                }
+            }
+        } else {
+            if ("end".equalsIgnoreCase(getScreenNext())) {
+
+                if (!getNodeExtraData().containsKey("exit_message")) {
+                    throw new Exception("exit_message >> " + getNodeName());
+                }
+            }
+
+        }
     }
 }

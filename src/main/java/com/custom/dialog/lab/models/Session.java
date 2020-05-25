@@ -84,4 +84,9 @@ public class Session implements Serializable {
         return screen;
     }
 
+    public HashMap<String,Object> extraDataBuilder(String key, Object value) {
+        getExtraData().put(key, value);
+        return extraData;
+    }
+
 }

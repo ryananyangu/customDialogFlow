@@ -92,7 +92,7 @@ public final class Utils {
      * @return
      */
     public static String[] dateToString() {
-        DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         java.util.Date today = Calendar.getInstance().getTime();
         String reportDate = df.format(today);
         return reportDate.split("\\s+");
@@ -104,7 +104,7 @@ public final class Utils {
      * @return
      */
     public static String curdateToString() {
-        DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date today = Calendar.getInstance().getTime();
         return df.format(today);
         

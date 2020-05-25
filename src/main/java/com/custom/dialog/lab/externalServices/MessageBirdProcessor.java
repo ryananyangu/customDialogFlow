@@ -5,7 +5,7 @@ import java.util.List;
 import com.messagebird.MessageBirdClient;
 import com.messagebird.MessageBirdService;
 import com.messagebird.MessageBirdServiceImpl;
-import com.messagebird.objects.conversations.Conversation;
+// import com.messagebird.objects.conversations.Conversation;
 import com.messagebird.objects.conversations.ConversationContent;
 
 public class MessageBirdProcessor {

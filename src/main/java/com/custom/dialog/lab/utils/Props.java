@@ -8,6 +8,8 @@ import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -27,11 +29,8 @@ public class Props {
 
     private void SystemErrsetup() {
         ClassPathResource resource = new ClassPathResource("statusCodes.json");
-        try {
-            Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
+        try (Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A")) {
             this.statusCodes = s.hasNext() ? s.next() : "";
-//            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -39,11 +38,8 @@ public class Props {
 
     private void FlowErrsetup() {
         ClassPathResource resource = new ClassPathResource("screenErrors.json");
-        try {
-            Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A");
+        try (Scanner s = new Scanner(resource.getInputStream()).useDelimiter("\\A")) {
             this.flowErrors = s.hasNext() ? s.next() : "";
-//            this.statusCodes = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -73,18 +69,29 @@ public class Props {
         returnCode.put("data", data);
         return new JSONObject(returnCode);
     }
-    
-    public String getFlowError(String code){
+
+    public String getFlowError(String code) {
         JSONObject errors;
         try {
             errors = new JSONObject(flowErrors);
         } catch (JSONException e) {
-            return "Internal System Error "+Utils.getCodelineNumber();
+            return "Internal System Error " + Utils.getCodelineNumber();
         }
 
         if (errors.has(code)) {
             return errors.getString(code);
         }
-        return "Internal System Error "+Utils.getCodelineNumber();
+        return "Internal System Error " + Utils.getCodelineNumber();
+    }
+
+    public String getCurrentLoggedInUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        return username;
     }
 }
