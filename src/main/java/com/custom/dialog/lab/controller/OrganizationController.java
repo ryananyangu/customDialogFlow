@@ -7,6 +7,7 @@ import com.custom.dialog.lab.services.OrganizationService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +46,8 @@ public class OrganizationController {
     }
 
     @PutMapping(path = "update/{organizationName}")
-    public String updateOrganization(@PathVariable String organizationName, @RequestBody Organization organization){
+    public String updateOrganization(@PathVariable String organizationName, @RequestBody @Valid Organization organization,BindingResult result){
+        // result
         return organizationService.updateOrganization(organizationName,organization).toString();
     }
 

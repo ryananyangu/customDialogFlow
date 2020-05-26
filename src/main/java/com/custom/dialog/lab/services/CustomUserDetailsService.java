@@ -53,10 +53,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         CustomUser user = userRepository.findById(username).block();
 
-        if (user.getEmail() == null || user.getPassword() == null) {
+        if (user.getUsername() == null || user.getPassword() == null) {
             throw new UsernameNotFoundException("Username invalid");
         }
-        return new User(user.getEmail(), user.getPassword(), new ArrayList<>());
+        return new User(user.getUsername(), user.getPassword(), new ArrayList<>());
     }
 
     public JSONObject getToken(String username, String password) {
@@ -85,7 +85,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         updatedDetails.setDateCreated(user.getDateCreated());
         updatedDetails.setDateLastModified(Calendar.getInstance().getTime());
 
-        if (!username.equalsIgnoreCase(updatedDetails.getEmail())) {
+        if (!username.equalsIgnoreCase(updatedDetails.getUsername())) {
             userRepository.delete(user).block();
         }
 

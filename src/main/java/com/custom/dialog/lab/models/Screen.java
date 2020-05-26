@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.json.JSONObject;
-
 public class Screen {
-    private boolean isScreenActive = true;
+    // private boolean isScreenActive = true;
     private String screenNext = new String();
     private String screenText = new String();
     private String screenType = new String();
@@ -21,10 +19,10 @@ public class Screen {
 
     public void validate() throws Exception {
         if (getScreenType().isEmpty() || getNodeName().isEmpty() || getScreenText().isEmpty()) {
-            System.out.println(new JSONObject(this).toString());
             throw new Exception("Validation failed, Mandatory fields left empty");
         }
     }
+
 
     public void validateRawInput() throws Exception {
         if (getScreenNext().isEmpty() || !getNodeOptions().isEmpty() || !getNodeItems().isEmpty()) {
@@ -61,6 +59,7 @@ public class Screen {
         return nodeItems;
     }
 
+
     public String getNodeName() {
         return nodeName;
     }
@@ -80,7 +79,6 @@ public class Screen {
     public String getScreenType() {
         return screenType;
     }
-
     public String getShortCode() {
         return shortCode;
     }
@@ -92,7 +90,6 @@ public class Screen {
     public void setNodeItems(List<HashMap<String, String>> nodeItems) {
         this.nodeItems = nodeItems;
     }
-
     public void setShortCode(String shortCode) {
         this.shortCode = shortCode;
     }
@@ -105,9 +102,6 @@ public class Screen {
         this.nodeOptions = nodeOptions;
     }
 
-    public void setScreenActive(boolean isScreenActive) {
-        this.isScreenActive = isScreenActive;
-    }
 
     public void setScreenNext(String screenNext) {
         this.screenNext = screenNext;
@@ -119,10 +113,6 @@ public class Screen {
 
     public void setScreenType(String screenType) {
         this.screenType = screenType;
-    }
-
-    public boolean isActive() {
-        return isScreenActive;
     }
 
     public Screen validateScreen() throws Exception {

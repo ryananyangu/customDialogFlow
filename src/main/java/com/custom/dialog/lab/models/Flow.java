@@ -6,6 +6,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
@@ -15,8 +18,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 @Document(collectionName = "menus")
 public class Flow implements Serializable {
 
+    
     private static final long serialVersionUID = 1L;
 
+    @NotEmpty
+    @NotNull
     @DocumentId
     private String shortCode;
 
@@ -28,8 +34,12 @@ public class Flow implements Serializable {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateLastModified;
 
+    @NotEmpty
+    @NotNull
     private HashMap<String, Screen> screens;
 
+    @NotEmpty
+    @NotNull
     private String organization;
 
     public Date getDateCreated() {

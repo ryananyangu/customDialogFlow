@@ -1,8 +1,12 @@
 package com.custom.dialog.lab.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
@@ -15,16 +19,26 @@ public class SessionHistory implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @NotNull
+    @NotEmpty
     @DocumentId
     private String sessionId;
 
+    @NotNull
+    @NotEmpty
     private String phoneNumber;
 
+    @NotNull
+    @NotEmpty
     private String serviceCode;
 
+    @NotNull
+    @NotEmpty
     private String status;
 
-    private List<Session> sessions;
+    @NotNull
+    @NotEmpty
+    private List<Session> sessions = new ArrayList<>();
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

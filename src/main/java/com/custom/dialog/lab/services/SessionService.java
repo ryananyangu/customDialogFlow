@@ -48,34 +48,38 @@ public class SessionService {
         String shortoode_cont = sessionHistoryRepository.findById(session.getSessionId()).block().getServiceCode();
         HashMap<String, Screen> screens;
         String nextScreen = currentScreen.getScreenNext();
+        HashMap<String,Object> extraData = latestSession.getExtraData();
+        
+
         try {
             screens = flowService.getFlowInstance(shortoode_cont).getScreens();
             if ("options".equalsIgnoreCase(currentScreen.getScreenType())) {
                 input = optionsInputValidate(currentScreen.getNodeOptions(), input);
+                extraData.put(currentScreen.getNodeName(), input);
             } else if ("items".equalsIgnoreCase(currentScreen.getScreenType())) {
                 HashMap<String, String> validateItem = itemsInputValidate(currentScreen.getNodeItems(), input);
                 nextScreen = validateItem.get("nextScreen");
                 input = validateItem.get("displayText");
+                extraData.put(currentScreen.getNodeName(), input);
             }
         } catch (Exception ex) {
             String display = "END " + ex.getMessage();
-            return existingSessionProcessor(session, display, currentScreen);
+            return existingSessionProcessor(session, display, currentScreen,input,extraData);
         }
 
         if ("end".equalsIgnoreCase(nextScreen)) {
             String display = dynamicText("END " + currentScreen.getNodeExtraData().get("exit_message"),
-                    latestSession.getExtraData());
+                    extraData);
 
-            return existingSessionProcessor(session, display, currentScreen);
+            return existingSessionProcessor(session, display, currentScreen,input,extraData);
         }
 
-        latestSession.extraDataBuilder(currentScreen.getNodeName(), input);
         Screen screen = screens.get(nextScreen);
         String display = displayText(screen);
 
-        display = dynamicText(display, latestSession.getExtraData());
+        display = dynamicText("CON "+display, extraData);
 
-        return existingSessionProcessor(session, display, screen);
+        return existingSessionProcessor(session, display, screen,input,extraData);
     }
 
     public String optionsInputValidate(List<String> options, String input) throws Exception {
@@ -119,7 +123,7 @@ public class SessionService {
 
     public String dynamicText(String screenText, HashMap<String, Object> sessionDetails) {
         if (!screenText.contains("^")) {
-            return "CON " + screenText;
+            return screenText;
         }
         for (String key : sessionDetails.keySet()) {
             String placeholder = "^" + key + "^";
@@ -132,7 +136,7 @@ public class SessionService {
             return "END " + props.getFlowError("6");
         }
 
-        return "CON " + screenText;
+        return screenText;
     }
 
     public String newSessionProcessor(Session session, String input, String customerIdentifier) {
@@ -172,15 +176,17 @@ public class SessionService {
         sessionHistory.setSessions(sessions);
         sessionHistoryRepository.save(sessionHistory).block();
 
-        return display;
+        return "CON "+display;
 
     }
 
-    public String existingSessionProcessor(Session session, String display, Screen screen) {
+    public String existingSessionProcessor(Session session, String display, Screen screen,String input,HashMap<String,Object> extraData) {
         Journey journey = new Journey();
+        journey.setInput(input);
         journey.setResponse(display);
         session.setScreen(screen);
         session.setJourney(journey);
+        session.setExtraData(extraData);
 
         SessionHistory sessionHistory = sessionHistoryRepository.findById(session.getSessionId()).block();
         sessionHistory.setDateLastModified(Calendar.getInstance().getTime());
@@ -195,6 +201,7 @@ public class SessionService {
         List<Session> sessions = sessionHistory.getSessions();
         sessions.add(session);
         sessionHistory.setSessions(sessions);
+        sessionHistoryRepository.save(sessionHistory).block();
         return display;
 
     }

@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
@@ -15,14 +18,19 @@ public class Session implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+
+    @NotNull
+    @NotEmpty
     @DocumentId
     private String sessionId;
 
     private Journey journey;
 
-    private Screen screen;
+    @NotNull
+    @NotEmpty
+    private Screen screen = new Screen();
 
-    private HashMap<String, Object> extraData;
+    private HashMap<String, Object> extraData = new HashMap<>();
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -82,11 +90,6 @@ public class Session implements Serializable {
 
     public Screen getScreen() {
         return screen;
-    }
-
-    public HashMap<String,Object> extraDataBuilder(String key, Object value) {
-        getExtraData().put(key, value);
-        return extraData;
     }
 
 }

@@ -41,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+            throws IOException {
 
         final String authorizationHeader = request.getHeader("Authorization");
 
@@ -68,10 +68,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 }
             }
             chain.doFilter(request, response);
-        } catch (JwtException | ServletException e) {
+        } catch (JwtException ex) {
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(403);
-            response.getWriter().write(props.getStatusResponse("401", e.getLocalizedMessage()).toString());
+            response.getWriter().write(props.getStatusResponse("401", ex.getMessage()).toString());
+        }catch(ServletException e){
+
+            // e.printStackTrace();
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(500);
+            response.getWriter().write(props.getStatusResponse("500_STS_3", e.getMessage()).toString());
         }
 
     }

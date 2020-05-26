@@ -71,7 +71,7 @@ public class FlowService {
             flowRepository.deleteById(shortcode).block();
             return props.getStatusResponse("200_SCRN", shortcode);
         }
-        return props.getStatusResponse("400_SCRN", "Flow does not exist");
+        return props.getStatusResponse("400_SCRN", "Flow does not exist" +shortcode);
     }
 
     public JSONObject listFlows() {

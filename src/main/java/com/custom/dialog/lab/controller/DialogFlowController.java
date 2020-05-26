@@ -47,7 +47,7 @@ public class DialogFlowController {
     @ResponseBody
     public String sessionNavigator(@RequestParam String msisdn, @RequestParam String session,
             @RequestParam String input) {
-                return sessionService.screenNavigate(session, input, "", msisdn);
+                return sessionService.screenNavigate(session, input, input, msisdn);
     }
 
     @ResponseBody
@@ -94,7 +94,7 @@ public class DialogFlowController {
     }
 
     @PutMapping("update/{shortcode}")
-    public String update(@PathVariable String shortcode, @RequestBody HashMap<String, Screen> flow) {
+    public String update(@PathVariable String shortcode, @RequestBody @Valid HashMap<String, Screen> flow) {
         try {
             Flow builtFlow = flowService.buildFlow(flow);
             return flowService.updateFlows(shortcode, builtFlow).toString();

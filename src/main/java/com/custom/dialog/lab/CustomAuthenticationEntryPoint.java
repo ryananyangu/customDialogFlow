@@ -21,6 +21,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             throws IOException, ServletException {
         res.setContentType("application/json;charset=UTF-8");
         res.setStatus(403);
-        res.getWriter().write(props.getStatusResponse("401", authException.getLocalizedMessage()).toString());
+        res.getWriter().write(props.getStatusResponse("401", authException.getMessage()+"Auth Entry").toString());
     }
 }

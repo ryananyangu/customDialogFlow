@@ -15,6 +15,8 @@ import com.google.cloud.firestore.annotation.DocumentId;
 // import java.io.Serializable;
 import java.util.*;
 
+import javax.validation.constraints.NotEmpty;
+
 // import org.springframework.util.Assert;
 import org.springframework.cloud.gcp.data.firestore.Document;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -27,11 +29,13 @@ public class CustomUser implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = -755490062669394115L;
 
+    @NotEmpty
     @DocumentId
-    private String email;
+    private String username;
 
     private String password;
 
+    @NotEmpty
     private String organization;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -58,7 +62,7 @@ public class CustomUser implements UserDetails, CredentialsContainer {
             String organization) {
 
         this.organization = organization;
-        this.email = username;
+        this.username = username;
         this.password = password;
         this.enabled = enabled;
         this.accountNonExpired = accountNonExpired;
@@ -69,28 +73,6 @@ public class CustomUser implements UserDetails, CredentialsContainer {
     }
 
 
-
-    // private static List<GrantedAuthority> sortAuthorities(Collection<? extends GrantedAuthority> authorities) {
-    //     Assert.notNull(authorities, "Cannot pass a null GrantedAuthority collection");
-    //     // Ensure array iteration order is predictable (as per
-    //     // UserDetails.getAuthorities() contract and SEC-717)
-    //     ArrayList<GrantedAuthority> sortedAuthorities = new ArrayList<>(new AuthorityComparator());
-
-    //     for (GrantedAuthority grantedAuthority : authorities) {
-    //         Assert.notNull(grantedAuthority, "GrantedAuthority list cannot contain any null elements");
-    //         sortedAuthorities.add(grantedAuthority);
-    //     }
-
-    //     return sortedAuthorities;
-    // }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmail() {
-        return email;
-    }
 
     public Date getDateCreated() {
         return dateCreated;
@@ -162,30 +144,10 @@ public class CustomUser implements UserDetails, CredentialsContainer {
         this.password = password;
     }
 
-    // private static class AuthorityComparator implements Comparator<GrantedAuthority>, Serializable {
-    //     private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
-
-    //     public int compare(GrantedAuthority g1, GrantedAuthority g2) {
-    //         // Neither should ever be null as each entry is checked before adding it to
-    //         // the set.
-    //         // If the authority is null, it is a custom authority and should precede
-    //         // others.
-    //         if (g2.getAuthority() == null) {
-    //             return -1;
-    //         }
-
-    //         if (g1.getAuthority() == null) {
-    //             return 1;
-    //         }
-
-    //         return g1.getAuthority().compareTo(g2.getAuthority());
-    //     }
-    // }
-
     @Override
     public String getUsername() {
 
-        return this.email;
+        return username;
     }
 
 }
