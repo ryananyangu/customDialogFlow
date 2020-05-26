@@ -76,7 +76,7 @@ public class SessionService {
 
         Screen screen = screens.get(nextScreen);
         String display = displayText(screen);
-
+        extraData.put(currentScreen.getNodeName(), input);
         display = dynamicText("CON "+display, extraData);
 
         return existingSessionProcessor(session, display, screen,input,extraData);
@@ -133,6 +133,7 @@ public class SessionService {
         }
 
         if (screenText.contains("^")) {
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+screenText);
             return "END " + props.getFlowError("6");
         }
 

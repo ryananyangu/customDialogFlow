@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Screen {
-    // private boolean isScreenActive = true;
     private String screenNext = new String();
     private String screenText = new String();
     private String screenType = new String();

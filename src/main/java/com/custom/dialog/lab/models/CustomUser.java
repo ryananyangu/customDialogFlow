@@ -12,12 +12,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  */
 import com.google.cloud.firestore.annotation.DocumentId;
 
-// import java.io.Serializable;
 import java.util.*;
 
 import javax.validation.constraints.NotEmpty;
-
-// import org.springframework.util.Assert;
 import org.springframework.cloud.gcp.data.firestore.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.CredentialsContainer;
@@ -29,8 +26,13 @@ public class CustomUser implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = -755490062669394115L;
 
+    
     @NotEmpty
     @DocumentId
+    private String email;
+
+
+    @NotEmpty
     private String username;
 
     private String password;
@@ -65,6 +67,7 @@ public class CustomUser implements UserDetails, CredentialsContainer {
         this.username = username;
         this.password = password;
         this.enabled = enabled;
+        this.email = username;
         this.accountNonExpired = accountNonExpired;
         this.credentialsNonExpired = credentialsNonExpired;
         this.accountNonLocked = accountNonLocked;
@@ -148,6 +151,12 @@ public class CustomUser implements UserDetails, CredentialsContainer {
     public String getUsername() {
 
         return username;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 }
