@@ -69,7 +69,14 @@ public class FlowService {
         return props.getStatusResponse("400_SCRN", "Flow does not exist");
     }
 
-    public JSONObject deleteFlow(String shortcode) {
+    public JSONObject deleteFlow(String shortcode, boolean isAdmin) {
+        Organization organization = organizationService.getLoggedInUserOrganization();
+        String organizationName = flowRepository.findById(shortcode).block().getOrganization();
+
+        if(!isAdmin && !organization.getName().equalsIgnoreCase(organizationName)){
+            return props.getStatusResponse("400_SCRN", "Permission Denied");
+        }
+
         if (flowRepository.existsById(shortcode).block()) {
             flowRepository.deleteById(shortcode).block();
             return props.getStatusResponse("200_SCRN", shortcode);
@@ -77,9 +84,14 @@ public class FlowService {
         return props.getStatusResponse("400_SCRN", "Flow does not exist" +shortcode);
     }
 
-    public JSONObject listFlows() {
-        Organization organization = organizationService.getLoggedInUserOrganization();
-        List<Flow> flows = flowRepository.findByOrganization(organization.getName()) .collectList().block();
+    public JSONObject listFlows(boolean isAdmin) {
+        List<Flow> flows;
+        if(isAdmin){
+            flows = flowRepository.findAll() .collectList().block();
+        }else{
+            Organization organization = organizationService.getLoggedInUserOrganization();
+            flows = flowRepository.findByOrganization(organization.getName()) .collectList().block();
+        }
         HashMap<String, List<String>> configuredCodes = new HashMap<>();
         configuredCodes.put("ussd", new ArrayList<>());
         configuredCodes.put("whatsapp", new ArrayList<>());
@@ -98,6 +110,7 @@ public class FlowService {
         return props.getStatusResponse("200_SCRN", configuredCodes);
 
     }
+
 
     public JSONObject updateFlows(String shortcode, Flow updated) {
 

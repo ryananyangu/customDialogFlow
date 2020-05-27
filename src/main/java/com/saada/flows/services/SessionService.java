@@ -34,6 +34,9 @@ public class SessionService {
     @Autowired
     private FlowService flowService;
 
+    @Autowired
+    private OrganizationService organizationService;
+
     public String screenNavigate(String sessionId, String input, String serviceCode, String customerIdentifier) {
         Session session = new Session();
         session.setSessionId(sessionId);
@@ -211,9 +214,16 @@ public class SessionService {
 
     }
 
-    public JSONObject listSessions(){
+    public JSONObject listSessions(boolean isAdmin){
+        List<SessionHistory> sessions;
+
+        if(isAdmin){
+            sessions = sessionHistoryRepository.findAll().collectList().block();
+
+        }
+        sessions = sessionHistoryRepository.findByOrganization(organizationService.getLoggedInUserOrganization().getName()).collectList().block();
         
-        return props.getStatusResponse("200_SCRN", sessionHistoryRepository.findAll().collectList().block());
+        return props.getStatusResponse("200_SCRN", sessions);
     }
 
 }

@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,11 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(path = "/api/v1/user/", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/client/user/", produces = MediaType.APPLICATION_JSON_VALUE)
 public class UserController {
 
     @Autowired
     private UserDetailsService UserDetailsService;
+    private final boolean isAdmin = false;
 
     @PostMapping(path = "token", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -52,25 +52,20 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public String createUser(@RequestBody @Valid User user) {
         return UserDetailsService.createUser(user).toString();
-
     }
 
     @PutMapping("update/{username}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    public String updateUser(@PathVariable String username, @RequestBody @Valid User updatedDetails) {
-        return UserDetailsService.updateUser(username,updatedDetails).toString();
+    public String updateUser(@PathVariable String username,@RequestBody @Valid User updatedDetails) {
+        return UserDetailsService.updateUser(username,updatedDetails,isAdmin).toString();
     }
 
     @ResponseBody
     @GetMapping(path = "list", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getUsers() {
-        return UserDetailsService.listUsers().toString();
+        return UserDetailsService.listUsers(isAdmin).toString();
     }
 
-    @ResponseBody
-    @DeleteMapping(path = "delete/{username}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public String deleteFlow(@PathVariable String username) {
-        return UserDetailsService.deleteUsers(username).toString();
-    }
+
 }

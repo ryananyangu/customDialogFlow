@@ -33,9 +33,12 @@ public class OrganizationService {
 
     }
 
-    public JSONObject updateOrganization(String organizationName, Organization organization) {
-
-
+    public JSONObject updateOrganization(Organization organization, boolean isAdmin) {
+        String organizationName = getLoggedInUserOrganization().getName();
+        if (!isAdmin && !organizationName.equalsIgnoreCase(organization.getName())) {
+            return props.getStatusResponse("400_SCRN", "User not allowed to use this service");
+        }
+        organizationName = organization.getName();
 
         if (!organizationRepository.existsById(organizationName).block()) {
             return props.getStatusResponse("400_SCRN", organization);
@@ -45,7 +48,7 @@ public class OrganizationService {
         organization.setDateCreated(organization2.getDateCreated());
         organization.setDateLastModified(Calendar.getInstance().getTime());
 
-        if(!organizationName.equalsIgnoreCase(organization.getName())){
+        if (!organizationName.equalsIgnoreCase(organization.getName())) {
             organizationRepository.delete(organization2).block();
         }
 
@@ -55,9 +58,8 @@ public class OrganizationService {
 
     }
 
-
-    public JSONObject deleteOrganization(String organizationName){
-        if(!organizationRepository.existsById(organizationName).block()){
+    public JSONObject deleteOrganization(String organizationName) {
+        if (!organizationRepository.existsById(organizationName).block()) {
             return props.getStatusResponse("400_SCRN", organizationName);
         }
         Organization organization = organizationRepository.findById(organizationName).block();
@@ -65,21 +67,20 @@ public class OrganizationService {
         return props.getStatusResponse("200_SCRN", organization);
     }
 
-    public JSONObject listOrganizations(){
+    public JSONObject listOrganizations() {
         List<Organization> organizations = organizationRepository.findAll().collectList().block();
         return props.getStatusResponse("200_SCRN", organizations);
     }
 
-
-    public JSONObject getOrganizationDetails(String organizationName){
-        if(!organizationRepository.existsById(organizationName).block()){
+    public JSONObject getOrganizationDetails(String organizationName) {
+        if (!organizationRepository.existsById(organizationName).block()) {
             return props.getStatusResponse("400_SCRN", organizationName);
         }
         Organization organization = organizationRepository.findById(organizationName).block();
         return props.getStatusResponse("200_SCRN", organization);
     }
 
-    public Organization getLoggedInUserOrganization(){
+    public Organization getLoggedInUserOrganization() {
         String organization = userDetailsService.getCurrentLoggedInUser().getOrganization();
         return organizationRepository.findById(organization).block();
     }

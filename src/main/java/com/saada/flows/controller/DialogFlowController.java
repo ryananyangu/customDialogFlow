@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(path = "/api/v1/flow/", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/api/v1/client/flow/", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class DialogFlowController {
 
     @Autowired
@@ -40,6 +40,8 @@ public class DialogFlowController {
 
     @Autowired
     private SessionService sessionService;
+
+    private final boolean isAdmin = false;
 
 
 
@@ -80,18 +82,19 @@ public class DialogFlowController {
     public String getFlow(@RequestParam String shortcode) {
         return flowService.getFlow(shortcode).toString();
     }
-
-    @ResponseBody
-    @DeleteMapping(path = "delete/{shortcode}")
-    public String deleteFlow(@PathVariable String shortcode) {
-        return flowService.deleteFlow(shortcode).toString();
-    }
-
     @ResponseBody
     @GetMapping(path = "list")
     public String getShortCodes() {
-        return flowService.listFlows().toString();
+        return flowService.listFlows(isAdmin).toString();
     }
+    @ResponseBody
+    @DeleteMapping(path = "delete/{shortcode}")
+    public String deleteFlow(@PathVariable String shortcode) {
+        return flowService.deleteFlow(shortcode,isAdmin).toString();
+    }
+
+    
+
 
     @PutMapping("update/{shortcode}")
     public String update(@PathVariable String shortcode, @RequestBody @Valid HashMap<String, Screen> flow) {

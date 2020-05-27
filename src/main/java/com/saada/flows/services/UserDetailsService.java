@@ -8,7 +8,6 @@ package com.saada.flows.services;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.saada.flows.models.User;
-import com.saada.flows.repositories.OrganizationRepository;
 import com.saada.flows.repositories.UserRepository;
 import com.saada.flows.utils.JwtUtil;
 import com.saada.flows.utils.Props;
@@ -44,10 +43,7 @@ public class UserDetailsService implements org.springframework.security.core.use
     private Props props;
 
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    OrganizationRepository organizationRepository;
+    private UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -83,13 +79,16 @@ public class UserDetailsService implements org.springframework.security.core.use
         return props.getStatusResponse("200_SCRN", jwt);
     }
 
-    public JSONObject updateUser(String username, User updatedDetails) {
+    public JSONObject updateUser(String username,User updatedDetails,boolean isAdmin) {
 
-        // TODO: Setup cannot change role contact admin
+
+        if(!isAdmin && !updatedDetails.getOrganization().equalsIgnoreCase(getCurrentLoggedInUser().getOrganization())){
+            return props.getStatusResponse("400_USR_1", "user not authorised to use service");
+        }
         User user = userRepository.findById(username).block();
 
         if (!userRepository.existsById(username).block()
-                || !organizationRepository.existsById(user.getOrganization()).block()) {
+                || getCurrentLoggedInUser().getOrganization().isEmpty()) {
             return props.getStatusResponse("400_USR_1", username);
         }
 
@@ -112,10 +111,12 @@ public class UserDetailsService implements org.springframework.security.core.use
 
     public JSONObject createUser(User user) {
 
-        if (!organizationRepository.existsById(user.getOrganization()).block()) {
+        if (getCurrentLoggedInUser().getOrganization().isEmpty()) {
             return props.getStatusResponse("400_USR_1", user.getOrganization());
         }
-
+        List<String>  authorities = user.getAuthorities();
+        authorities.add("ROLE_USER");
+        user.setAuthorities(authorities);
         user.setPassword(passwordEncoder(user.getPassword()));
         user.setDateCreated(Calendar.getInstance().getTime());
         user.setDateLastModified(Calendar.getInstance().getTime());
@@ -125,14 +126,27 @@ public class UserDetailsService implements org.springframework.security.core.use
         return props.getStatusResponse("200_SCRN_1", user);
     }
 
-    public JSONObject listUsers() {
+    public JSONObject listUsers(boolean isAdmin) {
         // filter by organization and do not show password
-        List<User> users = userRepository.findAll().collectList().block();
+        List<User> users;
+        if(isAdmin){
+            users = userRepository.findAll().collectList().block();
+        }else{
+            users = userRepository.findByOrganization(getCurrentLoggedInUser().getOrganization()).collectList().block();
+        }
+        users.forEach(user ->{
+            user.setPassword("");
+        });
+        
         return props.getStatusResponse("200_SCRN_1", users);
     }
 
-    public JSONObject deleteUsers(String username) {
+    public JSONObject deleteUsers(String username,boolean isAdmin) {
         User user = userRepository.findById(username).block();
+        if(!isAdmin && !getCurrentLoggedInUser().getOrganization().equalsIgnoreCase(user.getOrganization())){
+            return props.getStatusResponse("400_USR_1", "user not permitted to us this service");
+
+        }
         userRepository.delete(user).block();
         return props.getStatusResponse("200_SCRN", username);
 
