@@ -4,7 +4,7 @@
     <runtime>java8</runtime>
     <!--<sessions-enabled>true</sessions-enabled>-->
     <application>ussd-simulator-275712</application>
-    <version>standard-v7</version>
+    <!-- <version>standard-v7</version> -->
     <env-variables>
         <env-var name="DEFAULT_ENCODING" value="UTF-8" />
     </env-variables>

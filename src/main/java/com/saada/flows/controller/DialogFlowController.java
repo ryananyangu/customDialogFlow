@@ -108,6 +108,6 @@ public class DialogFlowController {
 
     @GetMapping(path = "sessions")
     public String getSessions(){
-        return sessionService.listSessions().toString();
+        return sessionService.listSessions(isAdmin).toString();
     }
 }

@@ -11,6 +11,6 @@ public interface ServiceCodeRepository extends FirestoreReactiveRepository<Servi
     public Flux<ServiceCode> findByOrganization(String organization);
     public Flux<ServiceCode> findByServiceType(ServiceType serviceType);
     public Flux<ServiceCode> findByProvider(String provider);
-    
     public Flux<ServiceCode> findByActive(boolean active);
+    public Flux<ServiceCode> findByOrganization(String organization,boolean active);
 }

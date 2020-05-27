@@ -1,16 +1,24 @@
 package com.saada.flows.models;
 
 
+import java.util.Date;
 import java.util.HashMap;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.google.cloud.Date;
+import com.google.cloud.firestore.annotation.DocumentId;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "serviceCodes")
 public class ServiceCode {
+
+    @DocumentId
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private String serviceCodeId;
 
     private String serviceCode;
     private ServiceType serviceType;
@@ -86,5 +94,13 @@ public class ServiceCode {
     public void setServiceType(ServiceType serviceType) {
         this.serviceType = serviceType;
     }
+
+    public String getServiceCodeId() {
+        return serviceCodeId;
+    }
+    public void setServiceCodeId(String serviceCodeId) {
+        this.serviceCodeId = serviceCodeId;
+    }
+    
 
 }

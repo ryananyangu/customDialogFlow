@@ -1,53 +1,84 @@
-// package com.custom.dialog.lab.services;
+package com.saada.flows.services;
 
-// import javax.validation.Valid;
+import java.util.Calendar;
+import java.util.List;
 
-// import com.custom.dialog.lab.models.Organization;
-// import com.custom.dialog.lab.models.ServiceCode;
-// import com.custom.dialog.lab.repositories.ServiceCodeRepository;
-// import com.custom.dialog.lab.utils.Props;
+import com.saada.flows.models.ServiceCode;
+import com.saada.flows.repositories.ServiceCodeRepository;
+import com.saada.flows.utils.Props;
 
-// import org.json.JSONObject;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.stereotype.Service;
-// import org.springframework.web.bind.annotation.RequestBody;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-// @Service
-// public class ServiceCodeService {
+/**
+ * ServiceCodeService
+ */
+@Service
+public class ServiceCodeService {
 
-//     @Autowired
-//     private Props props;
+    // TODO:Delete
 
-//     @Autowired
-//     private ServiceCodeRepository serviceCodeRepository;
+    @Autowired
+    private ServiceCodeRepository serviceCodeRepository;
 
-//     @Autowired
-//     private OrganizationService organizationService;
+    @Autowired
+    private Props props;
 
-//     public JSONObject getAvailableServiceCodes() {
+    @Autowired
+    private OrganizationService organizationService;
 
-//         return props.getStatusResponse("200_SCRN", serviceCodeRepository.findByActive(false).collectList().block());
+    public JSONObject getAvailableCodes() {
+        List<ServiceCode> codes = serviceCodeRepository.findByOrganization(organizationService.getLoggedInUserOrganization().getName(), false).collectList().block();
+        return props.getStatusResponse("200_SCRN", codes);
+    }
 
-//     }
+    public JSONObject getOwnedCodes() {
+        List<ServiceCode> codes = serviceCodeRepository
+                .findByOrganization(organizationService.getLoggedInUserOrganization().getName()).collectList().block();
+        return props.getStatusResponse("200_SCRN", codes);
+    }
 
-//     public JSONObject getOrganizationServiceCodes() {
-//         return props.getStatusResponse("200_SCRN",
-//                 serviceCodeRepository.findByOrganization(organizationService.getLoggedInUserOrganization().getName()));
 
-//     }
+    public JSONObject getAllCodes() {
+        List<ServiceCode> codes = serviceCodeRepository.findAll().collectList().block();
+        return props.getStatusResponse("200_SCRN", codes);
+    }
 
-//     // public JSONObject setAppliedServiceCode(String serviceCode) {
-//     //     ServiceCode serviceCodeObject = serviceCodeRepository.findById(serviceCode).block();
-//     //     // serviceCodeObject.isActive() 
-//     //     // update organization to shortcode
-//     // }
+    public JSONObject applyForCode(String shortCodeId){
 
-//     // public String getAllShortCodes() {
+        if(!serviceCodeRepository.existsById(shortCodeId).block()){
+            return props.getStatusResponse("400_SCRN", "Invalid shortcode "+shortCodeId );
+        }
+        ServiceCode shortCode = serviceCodeRepository.findById(shortCodeId).block();
+        shortCode.setActive(false);
+        shortCode.setDateLastModified(Calendar.getInstance().getTime());
+        shortCode.setOrganization(organizationService.getLoggedInUserOrganization().getName());
+        serviceCodeRepository.save(shortCode).block();
+        return props.getStatusResponse("200_SCRN", shortCode);
+    }
 
-//     // }
+    public JSONObject approveCode(String shortCodeId){
+        if(!serviceCodeRepository.existsById(shortCodeId).block()){
+            return props.getStatusResponse("400_SCRN", "Invalid shortcode "+shortCodeId );
+        }
+        ServiceCode shortCode = serviceCodeRepository.findById(shortCodeId).block();
+        shortCode.setActive(true);
+        shortCode.setDateLastModified(Calendar.getInstance().getTime());
+        serviceCodeRepository.save(shortCode).block();
+        return props.getStatusResponse("200_SCRN", shortCode);
+    }
 
-//     // public String createShortCode(@RequestBody @Valid ServiceCode serviceCode) {
+    public JSONObject updateCode(ServiceCode shortCodeId){
+        if(!serviceCodeRepository.existsById(shortCodeId.getServiceCodeId()).block()){
+            return props.getStatusResponse("400_SCRN", "Invalid shortcode "+shortCodeId );
+        }
+        ServiceCode shortCode = serviceCodeRepository.findById(shortCodeId.getServiceCodeId()).block();
+        shortCode.setDateLastModified(Calendar.getInstance().getTime());
+        serviceCodeRepository.save(shortCode).block();
+        return props.getStatusResponse("200_SCRN", shortCode);
+    }
 
-//     // }
 
-// }
+
+}

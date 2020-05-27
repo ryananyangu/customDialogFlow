@@ -3,6 +3,8 @@ package com.saada.flows.models;
 import java.security.Principal;
 import java.util.Date;
 
+import javax.validation.constraints.NotEmpty;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
@@ -12,6 +14,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.lang.NonNull;
 
 @Document(collectionName = "applicationVariables")
 public class ApplicationVars {
@@ -19,6 +22,8 @@ public class ApplicationVars {
     @DocumentId
     private String key;
 
+    @NonNull
+    @NotEmpty
     private String value;
 
     @LastModifiedBy

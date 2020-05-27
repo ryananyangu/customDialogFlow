@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,6 +32,7 @@ public class OrganizationController {
     private Props props;
 
     @GetMapping(path = "get")
+    @ResponseBody
     public String getOrganization(@RequestParam String organizationName){
         return organizationService.getOrganizationDetails(organizationName).toString();
     }
@@ -38,12 +40,14 @@ public class OrganizationController {
 
 
     @PutMapping(path = "update/{organizationName}")
+    @ResponseBody
     public String updateOrganization(@PathVariable String organizationName, @RequestBody @Valid Organization organization,BindingResult result){
         // result
         return organizationService.updateOrganization(organization,isAdmin).toString();
     }
 
     @PutMapping(path = "get")
+    @ResponseBody
     public String getOrganization(){
         return props.getStatusResponse("200_SCRN", organizationService.getLoggedInUserOrganization()).toString();
 

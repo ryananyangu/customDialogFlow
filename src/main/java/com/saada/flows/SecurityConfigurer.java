@@ -57,9 +57,9 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors().and().csrf().disable().authorizeRequests().antMatchers("/api/v1/user/token").permitAll()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .anyRequest().authenticated()
                 .antMatchers("/api/v1/admin/**").hasAnyRole("ROLE_ADMIN")
                 .antMatchers("/api/v1/client/**").hasAnyRole("ROLE_USER","ROLE_ADMIN")
+                .anyRequest().authenticated()
                 .and().exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
