@@ -40,6 +40,13 @@ public class SessionHistory implements Serializable {
     @NotEmpty
     private List<Session> sessions = new ArrayList<>();
 
+    @NotNull
+    @NotEmpty
+    private String organization;
+
+
+
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date dateCreated;
@@ -106,6 +113,13 @@ public class SessionHistory implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getOrganization() {
+        return organization;
+    }
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 
 }

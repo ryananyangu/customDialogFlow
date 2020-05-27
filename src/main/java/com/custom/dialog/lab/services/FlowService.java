@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.custom.dialog.lab.models.Flow;
+import com.custom.dialog.lab.models.Organization;
 import com.custom.dialog.lab.models.Screen;
 import com.custom.dialog.lab.repositories.FlowRepository;
-import com.custom.dialog.lab.repositories.UserRepository;
 import com.custom.dialog.lab.utils.Props;
 
 import org.json.JSONObject;
@@ -22,7 +22,10 @@ public class FlowService {
     private FlowRepository flowRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private CustomUserDetailsService customUserDetailsService;
+    
+    @Autowired
+    private OrganizationService organizationService;
 
     @Autowired
     private Props props;
@@ -34,10 +37,10 @@ public class FlowService {
         flow.setShortCode(screens.get("start_page").getShortCode());
         flow.setDateCreated(Calendar.getInstance().getTime());
         flow.setDateLastModified(Calendar.getInstance().getTime());
-        if (props.getCurrentLoggedInUser().isEmpty()) {
+        if (customUserDetailsService.getCurrentLoggedInUser().getUsername().isEmpty()) {
             throw new Exception("Failed to retrieve logged in user info");
         }
-        String organization = userRepository.findById(props.getCurrentLoggedInUser()).block().getOrganization();
+        String organization = organizationService.getLoggedInUserOrganization().getName();
         flow.setOrganization(organization);
         return flow;
     }
@@ -75,7 +78,8 @@ public class FlowService {
     }
 
     public JSONObject listFlows() {
-        List<Flow> flows = flowRepository.findAll().collectList().block();
+        Organization organization = organizationService.getLoggedInUserOrganization();
+        List<Flow> flows = flowRepository.findByOrganization(organization.getName()) .collectList().block();
         HashMap<String, List<String>> configuredCodes = new HashMap<>();
         configuredCodes.put("ussd", new ArrayList<>());
         configuredCodes.put("whatsapp", new ArrayList<>());

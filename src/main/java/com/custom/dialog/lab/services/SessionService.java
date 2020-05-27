@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import com.custom.dialog.lab.models.Flow;
 import com.custom.dialog.lab.models.Journey;
 import com.custom.dialog.lab.models.Screen;
 import com.custom.dialog.lab.models.Session;
@@ -14,6 +15,7 @@ import com.custom.dialog.lab.repositories.SessionHistoryRepository;
 import com.custom.dialog.lab.repositories.SessionRepository;
 import com.custom.dialog.lab.utils.Props;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -133,7 +135,6 @@ public class SessionService {
         }
 
         if (screenText.contains("^")) {
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+screenText);
             return "END " + props.getFlowError("6");
         }
 
@@ -144,11 +145,13 @@ public class SessionService {
         
         
         Date currentDate = Calendar.getInstance().getTime();
+        Flow flow;
         
         Screen screen;
 
         try {
-            screen = flowService.getFlowInstance(input).getScreens().get("start_page");
+            flow = flowService.getFlowInstance(input);
+            screen = flow.getScreens().get("start_page");
         } catch (Exception ex) {
             return "END " + ex.getMessage();
         }
@@ -175,6 +178,7 @@ public class SessionService {
         List<Session> sessions = new ArrayList<>();
         sessions.add(session);
         sessionHistory.setSessions(sessions);
+        sessionHistory.setOrganization(flow.getOrganization());
         sessionHistoryRepository.save(sessionHistory).block();
 
         return "CON "+display;
@@ -205,6 +209,11 @@ public class SessionService {
         sessionHistoryRepository.save(sessionHistory).block();
         return display;
 
+    }
+
+    public JSONObject listSessions(){
+        
+        return props.getStatusResponse("200_SCRN", sessionHistoryRepository.findAll().collectList().block());
     }
 
 }

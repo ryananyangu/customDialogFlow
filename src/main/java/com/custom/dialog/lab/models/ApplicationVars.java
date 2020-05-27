@@ -1,11 +1,7 @@
 package com.custom.dialog.lab.models;
 
-import java.io.Serializable;
 import java.security.Principal;
 import java.util.Date;
-
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
@@ -17,23 +13,13 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.format.annotation.DateTimeFormat;
 
-@Document(collectionName = "organizations")
-public class Organization implements Serializable{
+@Document(collectionName = "applicationVariables")
+public class ApplicationVars {
 
-    private static final long serialVersionUID = 1L;
-
-    @NotEmpty
-    @NotNull
     @DocumentId
-    private String name;
+    private String key;
 
-    @NotEmpty
-    @NotNull
-    private String phoneNumber;
-
-    @NotEmpty
-    @NotNull
-    private String email;
+    private String value;
 
     @LastModifiedBy
     private Principal modified;
@@ -54,46 +40,32 @@ public class Organization implements Serializable{
     private Date dateLastModified;
 
 
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setDateCreated(Date dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setDateLastModified(Date dateLastModified) {
+        this.dateLastModified = dateLastModified;
+    }
     public Date getDateCreated() {
         return dateCreated;
     }
-
     public Date getDateLastModified() {
         return dateLastModified;
     }
 
-    public String getEmail() {
-        return email;
+    public String getKey() {
+        return key;
     }
-
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-    public static long getSerialversionuid() {
-        return serialVersionUID;
-    }
-    public void setDateCreated(Date dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-    public void setDateLastModified(Date dateLastModified) {
-        this.dateLastModified = dateLastModified;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-
-
-
-    
 }

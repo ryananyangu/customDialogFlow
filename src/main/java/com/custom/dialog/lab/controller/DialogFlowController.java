@@ -102,4 +102,9 @@ public class DialogFlowController {
             return props.getStatusResponse("400_SCRN", ex.getMessage()).toString();
         }
     }
+
+    @GetMapping(path = "sessions")
+    public String getSessions(){
+        return sessionService.listSessions().toString();
+    }
 }

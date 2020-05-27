@@ -60,5 +60,20 @@
     - Datecreated = DateTimeOnCreation
     - DateUpdated = DateTimeCurrent
     - Contact
+    ShortCode --> auto
+    - serviceCode - TypesOfServiceCode
+    - Provider (MessageBird/AT/Saf/Airtel)
+    - Status - Active/Disable 
+    - Organization -
+
+    TypesOfServiceCode
+    - Name - ID
+    - Description
+
+    applicationVars
+    - Key - ID
+    - Value 
+    - Environment (prod,testbed,preprod)
+
 
 Usage of enums

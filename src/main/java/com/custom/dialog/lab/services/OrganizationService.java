@@ -18,6 +18,9 @@ public class OrganizationService {
     private Props props;
 
     @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
     private OrganizationRepository organizationRepository;
 
     public JSONObject createOrganization(Organization organization) {
@@ -74,8 +77,11 @@ public class OrganizationService {
         }
         Organization organization = organizationRepository.findById(organizationName).block();
         return props.getStatusResponse("200_SCRN", organization);
+    }
 
-
+    public Organization getLoggedInUserOrganization(){
+        String organization = customUserDetailsService.getCurrentLoggedInUser().getOrganization();
+        return organizationRepository.findById(organization).block();
     }
 
 }

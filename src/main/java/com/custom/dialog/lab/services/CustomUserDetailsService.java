@@ -26,6 +26,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  *
@@ -125,6 +126,20 @@ public class CustomUserDetailsService implements UserDetailsService {
         userRepository.delete(user).block();
         return props.getStatusResponse("200_SCRN", username);
 
+    }
+
+    
+
+    public CustomUser getCurrentLoggedInUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+            
+        }
+        return userRepository.findById(username).block();
     }
 
 }
