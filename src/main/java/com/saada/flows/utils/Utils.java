@@ -13,6 +13,7 @@ import java.util.Calendar;
 import org.json.JSONObject;
 import org.json.XML;
 
+
 /**
  * Utils
  */
@@ -20,12 +21,9 @@ public final class Utils {
 
     private Utils() {
     }
-    
-    
 
     public static String prelogString(String identifier, int lineNumber, String logMessage) {
-        return " | LINE >> " + lineNumber + " | IDENTIFIER >> " 
-                + identifier + " | MESSAGE >> " + logMessage;
+        return " | LINE >> " + lineNumber + " | IDENTIFIER >> " + identifier + " | MESSAGE >> " + logMessage;
     }
 
     /**
@@ -107,11 +105,13 @@ public final class Utils {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date today = Calendar.getInstance().getTime();
         return df.format(today);
-        
+
     }
 
     public static int randomGen(int min, int max) {
         return (int) ((Math.random() * (max - min)) + min);
     }
+
+
 
 }

@@ -114,6 +114,11 @@ public class UserDetailsService implements org.springframework.security.core.use
         if (getCurrentLoggedInUser().getOrganization().isEmpty()) {
             return props.getStatusResponse("400_USR_1", user.getOrganization());
         }
+
+
+        if (userRepository.existsById(user.getEmail()).block()) {
+            return props.getStatusResponse("400_USR_1", "User already exists");
+        }
         List<String>  authorities = user.getAuthorities();
         authorities.add("ROLE_USER");
         user.setAuthorities(authorities);

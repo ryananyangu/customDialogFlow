@@ -1,17 +1,54 @@
-// package com.custom.dialog.lab.externalServices;
+package com.saada.flows.externalServices;
 
-// import java.util.List;
 
-// import com.messagebird.MessageBirdClient;
-// import com.messagebird.MessageBirdService;
-// import com.messagebird.MessageBirdServiceImpl;
-// // import com.messagebird.objects.conversations.Conversation;
-// import com.messagebird.objects.conversations.ConversationContent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 
-// public class MessageBirdProcessor {
-//     final MessageBirdService messageBirdService = new MessageBirdServiceImpl("test_gshuPaZoeEG6ovbc8M79w0QyM");
-//     final MessageBirdClient messageBirdClient = new MessageBirdClient(messageBirdService,List.of(MessageBirdClient.Feature.ENABLE_CONVERSATION_API_WHATSAPP_SANDBOX));
-//     ConversationContent conversationContent = new ConversationContent();
-//     // conversationContent.setText("");      
-//     // Conver
-// }
+@Service
+public class MessageBirdProcessor {
+
+    @Async("threadPoolTaskExecutor")
+    public void sendRequest(String request, String urlStr, HashMap<String, String> headers)
+            throws MalformedURLException, IOException {
+
+        URL url = new URL(urlStr);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+
+        headers.keySet().forEach((header) -> {
+            con.setRequestProperty(header, headers.get(header));
+        });
+        con.setDoOutput(true);
+        con.setConnectTimeout(15000);
+        con.setReadTimeout(15000);
+
+        try (OutputStream os = con.getOutputStream()) {
+            byte[] input = request.getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        int status = con.getResponseCode();
+
+        System.out.println(status);
+        StringBuilder response = new StringBuilder();
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
+
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+        }
+        con.disconnect();
+        System.out.println("===================================================ASYNC END========================================================");
+        // return response.toString();
+    }
+}

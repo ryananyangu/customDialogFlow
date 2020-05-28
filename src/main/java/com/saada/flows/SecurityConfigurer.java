@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -56,20 +55,16 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors().and().csrf().disable().authorizeRequests()
-        .antMatchers("/authenticate").permitAll()
-                .antMatchers("/api/v1/admin/**").hasAnyRole("ROLE_ADMIN")
+        .antMatchers("/api/v1/client/user/token","/api/v1/public/**").permitAll()
+                .antMatchers("/api/v1/admin/**").hasAnyRole("ADMIN")
                 .antMatchers("/api/v1/client/**")
-                .hasAnyRole("ROLE_USER", "ROLE_ADMIN").antMatchers(HttpMethod.OPTIONS).permitAll().anyRequest()
+                .hasAnyRole("USER","ADMIN").antMatchers(HttpMethod.OPTIONS).permitAll().anyRequest()
                 .authenticated().and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterAfter(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
     }
 
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/api/v1/client/user/token").antMatchers("/api/v1/public/**");
-    }
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
