@@ -86,9 +86,9 @@ public class ExternalProcessors {
 
                 if(response.startsWith("END")){
                     String urlend = "https://conversations.messagebird.com/v1/conversations/" + message.getConversation().getId();
-                    messageBirdProcessor.sendRequest(new JSONObject().put("status", "archived").toString(), urlend, headers);
+                    messageBirdProcessor.sendRequest(new JSONObject().put("status", "archived").toString(), urlend, headers,"PATCH");
                 }
-                messageBirdProcessor.sendRequest(request.toString(), url, headers);
+                messageBirdProcessor.sendRequest(request.toString(), url, headers,"POST");
             } catch (Exception e) {
                 System.out.println(e.getLocalizedMessage());
                 return "";

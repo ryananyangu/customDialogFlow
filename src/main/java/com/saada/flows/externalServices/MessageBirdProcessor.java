@@ -16,19 +16,19 @@ import org.springframework.stereotype.Service;
 public class MessageBirdProcessor {
 
     @Async("threadPoolTaskExecutor")
-    public void sendRequest(String request, String urlStr, HashMap<String, String> headers)
+    public void sendRequest(String request, String urlStr, HashMap<String, String> headers,String method)
             throws MalformedURLException, IOException {
 
         URL url = new URL(urlStr);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
+        con.setRequestMethod(method);
 
         headers.keySet().forEach((header) -> {
             con.setRequestProperty(header, headers.get(header));
         });
         con.setDoOutput(true);
-        con.setConnectTimeout(15000);
-        con.setReadTimeout(15000);
+        con.setConnectTimeout(5000);
+        con.setReadTimeout(5000);
 
         try (OutputStream os = con.getOutputStream()) {
             byte[] input = request.getBytes("utf-8");
