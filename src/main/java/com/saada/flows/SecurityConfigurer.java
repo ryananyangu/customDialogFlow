@@ -55,21 +55,20 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.cors().and().csrf().disable().authorizeRequests().antMatchers("/api/v1/user/token").permitAll()
-                .antMatchers(HttpMethod.OPTIONS).permitAll()
+        httpSecurity.cors().and().csrf().disable().authorizeRequests()
+        .antMatchers("/authenticate").permitAll()
                 .antMatchers("/api/v1/admin/**").hasAnyRole("ROLE_ADMIN")
-                .antMatchers("/api/v1/client/**").hasAnyRole("ROLE_USER","ROLE_ADMIN")
-                .anyRequest().authenticated()
-                .and().exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint())
-                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .antMatchers("/api/v1/client/**")
+                .hasAnyRole("ROLE_USER", "ROLE_ADMIN").antMatchers(HttpMethod.OPTIONS).permitAll().anyRequest()
+                .authenticated().and().exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/api/v1/user/token").antMatchers("/api/v1/public/**");
+        web.ignoring().antMatchers("/api/v1/client/user/token").antMatchers("/api/v1/public/**");
     }
 
     @Bean
