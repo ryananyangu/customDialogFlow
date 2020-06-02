@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import com.saada.flows.models.Flow;
 import com.saada.flows.models.Journey;
@@ -17,6 +18,10 @@ import com.saada.flows.utils.Props;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -214,14 +219,19 @@ public class SessionService {
 
     }
 
-    public JSONObject listSessions(boolean isAdmin){
-        List<SessionHistory> sessions;
+    public JSONObject listSessions(boolean isAdmin,Optional<Integer> page){
+        Page<SessionHistory> sessions;
+        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 5,    Sort.by("dateLastModified").descending());
 
         if(isAdmin){
-            sessions = sessionHistoryRepository.findAll().collectList().block();
+            sessions = sessionHistoryRepository.findAll(pageable);
 
         }
-        sessions = sessionHistoryRepository.findByOrganization(organizationService.getLoggedInUserOrganization().getName()).collectList().block();
+        //sessions = 
+        sessions = sessionHistoryRepository.findByOrganization(
+            organizationService.getLoggedInUserOrganization().getName(), pageable
+            
+             ); //.collectList().block();
         
         return props.getStatusResponse("200_SCRN", sessions);
     }

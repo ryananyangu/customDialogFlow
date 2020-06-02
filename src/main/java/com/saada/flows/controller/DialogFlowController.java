@@ -7,7 +7,7 @@ import com.saada.flows.services.SessionService;
 import com.saada.flows.utils.Props;
 
 import java.util.HashMap;
-
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -107,7 +107,7 @@ public class DialogFlowController {
     }
 
     @GetMapping(path = "sessions")
-    public String getSessions(){
-        return sessionService.listSessions(isAdmin).toString();
+    public String getSessions(@RequestParam Optional<Integer> page){
+        return sessionService.listSessions(isAdmin,page).toString();
     }
 }

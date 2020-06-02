@@ -4,10 +4,15 @@ package com.saada.flows.repositories;
 
 import com.saada.flows.models.SessionHistory;
 
-import org.springframework.cloud.gcp.data.firestore.FirestoreReactiveRepository;
 
-import reactor.core.publisher.Flux;
+import org.springframework.cloud.gcp.data.firestore.FirestoreReactiveRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+// import reactor.core.publisher.Flux;
 
 public interface SessionHistoryRepository extends FirestoreReactiveRepository<SessionHistory>{
-    public Flux<SessionHistory> findByOrganization(String organization);
+    // Flux<SessionHistory> findByOrganization(String organization, Pageable pageable);
+    Page<SessionHistory> findAll(Pageable pageable);
+    Page<SessionHistory> findByOrganization(String organization, Pageable pageable);
 }
