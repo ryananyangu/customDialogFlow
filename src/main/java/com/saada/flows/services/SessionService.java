@@ -220,7 +220,7 @@ public class  SessionService {
 
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page){
         List<SessionHistory> sessions;
-        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 20,    Sort.by("dateLastModified").descending());
+        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 10,    Sort.by("dateLastModified").descending());
         
         if(!page.isPresent()){
 
@@ -236,7 +236,6 @@ public class  SessionService {
             organizationService.getLoggedInUserOrganization().getName(), pageable
             
              ).collectList().block();
-             System.out.println(sessions);
         
         return props.getStatusResponse("200_SCRN", sessions);
     }
