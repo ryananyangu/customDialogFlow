@@ -98,7 +98,7 @@ public class  SessionService {
             if (options.size() < convertedInput) {
                 throw new Exception(props.getFlowError("2"));
             }
-            response += options.get(convertedInput - 1)+" ";
+            response += "\n"+options.get(convertedInput - 1);
         }
 
         return response;
