@@ -18,9 +18,9 @@ import com.saada.flows.utils.Props;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+// import org.springframework.data.domain.PageRequest;
+// import org.springframework.data.domain.Pageable;
+// import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -92,11 +92,16 @@ public class  SessionService {
     }
 
     public String optionsInputValidate(List<String> options, String input) throws Exception {
-        int convertedInput = Integer.parseInt(input);
-        if (options.size() < convertedInput) {
-            throw new Exception(props.getFlowError("2"));
+        String response = new String();
+        for(String item :  input.split(",")){
+            int convertedInput = Integer.parseInt(item);
+            if (options.size() < convertedInput) {
+                throw new Exception(props.getFlowError("2"));
+            }
+            response += options.get(convertedInput - 1)+" ";
         }
-        return options.get(convertedInput - 1);
+
+        return response;
     }
 
     public HashMap<String, String> itemsInputValidate(List<HashMap<String, String>> items, String input)
@@ -220,7 +225,7 @@ public class  SessionService {
 
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page){
         List<SessionHistory> sessions;
-        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 10,    Sort.by("dateLastModified").descending());
+        // Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 10,    Sort.by("dateCreated").descending());
         
         if(!page.isPresent()){
 
@@ -229,11 +234,11 @@ public class  SessionService {
 
         if(isAdmin){
             // sessionHistoryRepository.findAll().collectList().block().size();
-            sessions = sessionHistoryRepository.findAll().collectList().block();
+            sessions = sessionHistoryRepository.findAll().collectList().block();    
 
         }
         sessions = sessionHistoryRepository.findByOrganization(
-            organizationService.getLoggedInUserOrganization().getName(), pageable
+            organizationService.getLoggedInUserOrganization().getName()
             
              ).collectList().block();
         
