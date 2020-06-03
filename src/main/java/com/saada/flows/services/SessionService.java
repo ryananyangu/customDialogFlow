@@ -18,7 +18,6 @@ import com.saada.flows.utils.Props;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -220,18 +219,25 @@ public class SessionService {
     }
 
     public JSONObject listSessions(boolean isAdmin,Optional<Integer> page){
-        Page<SessionHistory> sessions;
-        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 5,    Sort.by("dateLastModified").descending());
+        List<SessionHistory> sessions;
+        Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 20,    Sort.by("dateLastModified").descending());
+        
+        if(!page.isPresent()){
+
+        }
+
 
         if(isAdmin){
-            sessions = sessionHistoryRepository.findAll(pageable);
+            // sessionHistoryRepository.findAll().collectList().block().size();
+            sessions = sessionHistoryRepository.findAll(pageable).collectList().block();
 
         }
         //sessions = 
         sessions = sessionHistoryRepository.findByOrganization(
             organizationService.getLoggedInUserOrganization().getName(), pageable
             
-             ); //.collectList().block();
+             ).collectList().block();
+             System.out.println(sessions);
         
         return props.getStatusResponse("200_SCRN", sessions);
     }

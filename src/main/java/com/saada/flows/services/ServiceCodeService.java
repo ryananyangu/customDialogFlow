@@ -80,5 +80,10 @@ public class ServiceCodeService {
     }
 
 
+    public ServiceCode getAll(String provider, String serviceCode){
+        return serviceCodeRepository.findByProviderAndServiceCode(provider, serviceCode).collectList().block().get(0);
+    }
+
+
 
 }

@@ -7,3 +7,4 @@ target/
 .factorypath
 configs/
 .vscode/
+USSD-SIMULATOR-*.json

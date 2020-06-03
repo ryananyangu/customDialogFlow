@@ -142,4 +142,8 @@ public class FlowService {
         return flowRepository.findById(shortcode).block();
     }
 
+    public boolean isAvailable(String shortcode){
+        return flowRepository.existsById(shortcode).block();
+    }
+
 }

@@ -20,6 +20,7 @@ public class ServiceCode {
     @GeneratedValue(strategy=GenerationType.AUTO)
     private String serviceCodeId;
 
+    
     private String serviceCode;
     private ServiceType serviceType;
     private String provider;
