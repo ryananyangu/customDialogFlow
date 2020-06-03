@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping(path = "/api/v1/admin/session/", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-public class TransactionController {
+public class SessionsTransactionController {
+    
     @Autowired
     private SessionService sessionService;
 

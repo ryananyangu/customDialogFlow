@@ -24,7 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SessionService {
+public class  SessionService {
 
     @Autowired
     private Props props;
@@ -218,7 +218,7 @@ public class SessionService {
 
     }
 
-    public JSONObject listSessions(boolean isAdmin,Optional<Integer> page){
+    public JSONObject listSessions(boolean isAdmin, Optional<Integer> page){
         List<SessionHistory> sessions;
         Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 20,    Sort.by("dateLastModified").descending());
         
@@ -229,10 +229,9 @@ public class SessionService {
 
         if(isAdmin){
             // sessionHistoryRepository.findAll().collectList().block().size();
-            sessions = sessionHistoryRepository.findAll(pageable).collectList().block();
+            sessions = sessionHistoryRepository.findAll().collectList().block();
 
         }
-        //sessions = 
         sessions = sessionHistoryRepository.findByOrganization(
             organizationService.getLoggedInUserOrganization().getName(), pageable
             
