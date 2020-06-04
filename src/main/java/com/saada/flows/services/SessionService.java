@@ -6,14 +6,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-// import java.util.concurrent.TimeUnit;
-
-// import com.google.api.core.ApiFuture;
-// import com.google.cloud.firestore.CollectionReference;
-// import com.google.cloud.firestore.Firestore;
-// import com.google.cloud.firestore.Query;
-// import com.google.cloud.firestore.QueryDocumentSnapshot;
-// import com.google.cloud.firestore.QuerySnapshot;
 import com.saada.flows.models.Flow;
 import com.saada.flows.models.Journey;
 import com.saada.flows.models.Screen;
@@ -38,9 +30,6 @@ public class SessionService {
 
     @Value("${paginate.page.size}")
     private int pageSize;
-
-    // @Autowired
-    // private Firestore firestore;
 
     @Autowired
     private Props props;
@@ -246,35 +235,10 @@ public class SessionService {
             // sessions
             Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),pageable);
             sessions = sessionHist.collectList().block();
-            long size = sessionHist.count().block();
-            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+Math.ceil((double)size/pageSize) +" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            
         }
         sessions = sessionHistoryRepository.findByOrganization(org,pageable).collectList().block();
-        int size = sessionHistoryRepository.findByOrganization(org).collectList().block().size();
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+Math.ceil((double)size/pageSize) +" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         return props.getStatusResponse("200_SCRN", sessions);
     }
-
-    // public List<Object> pagination(Optional<String> collection, Optional<Integer> page, Optional<String> sortItem) {
-
-    //     CollectionReference cities = firestore.collection(collection.orElse("sessionHistory"));
-        
-    //     ApiFuture<QuerySnapshot> future;
-    //     if (!page.isPresent()) {
-
-    //         Query firstPage = cities.orderBy(sortItem.orElse("dateCreated"), Query.Direction.DESCENDING)
-    //                 .limit(pageSize);
-    //         future = firstPage.get();
-    //     } else if (page.get().intValue() > 1) {
-    //         int lastIndex = pageSize * page.get().intValue();
-    //         Query nextPage = cities.orderBy(sortItem.orElse("dateCreated"), Query.Direction.DESCENDING)
-    //                 .offset(lastIndex).limit(lastIndex + pageSize);
-    //         future = nextPage.get();
-
-    //     }
-    //     List<QueryDocumentSnapshot> docs = future.get(30, TimeUnit.SECONDS).getDocuments();
-    //     props.getStatusResponse("200_SCRN", docs);
-    //     // docs.
-    // }
 
 }
