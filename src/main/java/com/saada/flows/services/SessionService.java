@@ -18,16 +18,13 @@ import com.saada.flows.utils.Props;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.data.domain.PageRequest;
-// import org.springframework.data.domain.Pageable;
-// import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
 public class  SessionService {
 
     @Autowired
-    private Props props;
+    private Props props;    
 
     @Autowired
     private SessionRepository sessionRepository;
