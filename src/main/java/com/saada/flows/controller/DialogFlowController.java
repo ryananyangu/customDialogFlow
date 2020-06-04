@@ -106,7 +106,7 @@ public class DialogFlowController {
         }
     }
     @GetMapping(path = "sessions")
-    public String getSessions(@RequestParam Optional<Integer> page){
-        return sessionService.listSessions(isAdmin,page).toString();
+    public String getSessions(@RequestParam Optional<Integer> page, @RequestParam Optional<String> organization){
+        return sessionService.listSessions(isAdmin,page,organization).toString();
     }
 }

@@ -6,7 +6,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+// import java.util.concurrent.TimeUnit;
 
+// import com.google.api.core.ApiFuture;
+// import com.google.cloud.firestore.CollectionReference;
+// import com.google.cloud.firestore.Firestore;
+// import com.google.cloud.firestore.Query;
+// import com.google.cloud.firestore.QueryDocumentSnapshot;
+// import com.google.cloud.firestore.QuerySnapshot;
 import com.saada.flows.models.Flow;
 import com.saada.flows.models.Journey;
 import com.saada.flows.models.Screen;
@@ -18,13 +25,25 @@ import com.saada.flows.utils.Props;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import reactor.core.publisher.Flux;
+
 @Service
-public class  SessionService {
+public class SessionService {
+
+    @Value("${paginate.page.size}")
+    private int pageSize;
+
+    // @Autowired
+    // private Firestore firestore;
 
     @Autowired
-    private Props props;    
+    private Props props;
 
     @Autowired
     private SessionRepository sessionRepository;
@@ -45,7 +64,7 @@ public class  SessionService {
         session.setDateLastModified(Calendar.getInstance().getTime());
 
         if (!sessionRepository.existsById(session.getSessionId()).block()) {
-            return newSessionProcessor(session, serviceCode,customerIdentifier);
+            return newSessionProcessor(session, serviceCode, customerIdentifier);
         }
 
         Session latestSession = sessionRepository.findById(session.getSessionId()).block();
@@ -54,8 +73,7 @@ public class  SessionService {
         String shortoode_cont = sessionHistoryRepository.findById(session.getSessionId()).block().getServiceCode();
         HashMap<String, Screen> screens;
         String nextScreen = currentScreen.getScreenNext();
-        HashMap<String,Object> extraData = latestSession.getExtraData();
-        
+        HashMap<String, Object> extraData = latestSession.getExtraData();
 
         try {
             screens = flowService.getFlowInstance(shortoode_cont).getScreens();
@@ -70,32 +88,31 @@ public class  SessionService {
             }
         } catch (Exception ex) {
             String display = "END " + ex.getMessage();
-            return existingSessionProcessor(session, display, currentScreen,input,extraData);
+            return existingSessionProcessor(session, display, currentScreen, input, extraData);
         }
 
         if ("end".equalsIgnoreCase(nextScreen)) {
-            String display = dynamicText("END " + currentScreen.getNodeExtraData().get("exit_message"),
-                    extraData);
+            String display = dynamicText("END " + currentScreen.getNodeExtraData().get("exit_message"), extraData);
 
-            return existingSessionProcessor(session, display, currentScreen,input,extraData);
+            return existingSessionProcessor(session, display, currentScreen, input, extraData);
         }
 
         Screen screen = screens.get(nextScreen);
         String display = displayText(screen);
         extraData.put(currentScreen.getNodeName(), input);
-        display = dynamicText("CON "+display, extraData);
+        display = dynamicText("CON " + display, extraData);
 
-        return existingSessionProcessor(session, display, screen,input,extraData);
+        return existingSessionProcessor(session, display, screen, input, extraData);
     }
 
     public String optionsInputValidate(List<String> options, String input) throws Exception {
         String response = new String();
-        for(String item :  input.split(",")){
+        for (String item : input.split(",")) {
             int convertedInput = Integer.parseInt(item);
             if (options.size() < convertedInput) {
                 throw new Exception(props.getFlowError("2"));
             }
-            response += "\n"+options.get(convertedInput - 1);
+            response += "\n" + options.get(convertedInput - 1);
         }
 
         return response;
@@ -151,11 +168,10 @@ public class  SessionService {
     }
 
     public String newSessionProcessor(Session session, String input, String customerIdentifier) {
-        
-        
+
         Date currentDate = Calendar.getInstance().getTime();
         Flow flow;
-        
+
         Screen screen;
 
         try {
@@ -190,11 +206,12 @@ public class  SessionService {
         sessionHistory.setOrganization(flow.getOrganization());
         sessionHistoryRepository.save(sessionHistory).block();
 
-        return "CON "+display;
+        return "CON " + display;
 
     }
 
-    public String existingSessionProcessor(Session session, String display, Screen screen,String input,HashMap<String,Object> extraData) {
+    public String existingSessionProcessor(Session session, String display, Screen screen, String input,
+            HashMap<String, Object> extraData) {
         Journey journey = new Journey();
         journey.setInput(input);
         journey.setResponse(display);
@@ -220,26 +237,44 @@ public class  SessionService {
 
     }
 
-    public JSONObject listSessions(boolean isAdmin, Optional<Integer> page){
+    public JSONObject listSessions(boolean isAdmin, Optional<Integer> page, Optional<String> organization) {
         List<SessionHistory> sessions;
-        // Pageable pageable = PageRequest.of(page.orElse(0).intValue(), 10,    Sort.by("dateCreated").descending());
+        String org = organizationService.getLoggedInUserOrganization().getName();
+        Pageable pageable = PageRequest.of(page.orElse(0), pageSize, Sort.by("dateCreated").descending());
         
-        if(!page.isPresent()){
-
+        if (isAdmin) {
+            // sessions
+            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),pageable);
+            sessions = sessionHist.collectList().block();
+            long size = sessionHist.count().block();
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+Math.ceil((double)size/pageSize) +" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         }
-
-
-        if(isAdmin){
-            // sessionHistoryRepository.findAll().collectList().block().size();
-            sessions = sessionHistoryRepository.findAll().collectList().block();    
-
-        }
-        sessions = sessionHistoryRepository.findByOrganization(
-            organizationService.getLoggedInUserOrganization().getName()
-            
-             ).collectList().block();
-        
+        sessions = sessionHistoryRepository.findByOrganization(org,pageable).collectList().block();
+        int size = sessionHistoryRepository.findByOrganization(org).collectList().block().size();
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+Math.ceil((double)size/pageSize) +" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         return props.getStatusResponse("200_SCRN", sessions);
     }
+
+    // public List<Object> pagination(Optional<String> collection, Optional<Integer> page, Optional<String> sortItem) {
+
+    //     CollectionReference cities = firestore.collection(collection.orElse("sessionHistory"));
+        
+    //     ApiFuture<QuerySnapshot> future;
+    //     if (!page.isPresent()) {
+
+    //         Query firstPage = cities.orderBy(sortItem.orElse("dateCreated"), Query.Direction.DESCENDING)
+    //                 .limit(pageSize);
+    //         future = firstPage.get();
+    //     } else if (page.get().intValue() > 1) {
+    //         int lastIndex = pageSize * page.get().intValue();
+    //         Query nextPage = cities.orderBy(sortItem.orElse("dateCreated"), Query.Direction.DESCENDING)
+    //                 .offset(lastIndex).limit(lastIndex + pageSize);
+    //         future = nextPage.get();
+
+    //     }
+    //     List<QueryDocumentSnapshot> docs = future.get(30, TimeUnit.SECONDS).getDocuments();
+    //     props.getStatusResponse("200_SCRN", docs);
+    //     // docs.
+    // }
 
 }
