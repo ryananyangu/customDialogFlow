@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Flux;
@@ -230,14 +231,16 @@ public class SessionService {
         List<SessionHistory> sessions;
         String org = organizationService.getLoggedInUserOrganization().getName();
         Pageable pageable = PageRequest.of(page.orElse(0), pageSize, Sort.by("dateCreated").descending());
-        
+
         if (isAdmin) {
             // sessions
-            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),pageable);
+            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),
+                    pageable,Sort.by(Direction.DESC, "dateCreated"));
             sessions = sessionHist.collectList().block();
-            
+
         }
-        sessions = sessionHistoryRepository.findByOrganization(org,pageable).collectList().block();
+        sessions = sessionHistoryRepository.findByOrganization(org, pageable, Sort.by(Direction.DESC, "dateCreated"))
+                .collectList().block();
         return props.getStatusResponse("200_SCRN", sessions);
     }
 

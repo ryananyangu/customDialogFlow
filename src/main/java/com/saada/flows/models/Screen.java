@@ -1,6 +1,5 @@
 package com.saada.flows.models;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +22,13 @@ public class Screen {
         }
     }
 
+    public void validateExternal() throws Exception {
+        if (getScreenNext().isEmpty() || !getNodeOptions().isEmpty() || !getNodeItems().isEmpty()
+                || !getNodeExtraData().containsKey("url") || getNodeExtraData().get("url").isEmpty()) {
+            throw new Exception(
+                    "Validation failed, External input has to define screen Next and not have option and items");
+        }
+    }
 
     public void validateRawInput() throws Exception {
         if (getScreenNext().isEmpty() || !getNodeOptions().isEmpty() || !getNodeItems().isEmpty()) {
@@ -59,7 +65,6 @@ public class Screen {
         return nodeItems;
     }
 
-
     public String getNodeName() {
         return nodeName;
     }
@@ -79,6 +84,7 @@ public class Screen {
     public String getScreenType() {
         return screenType;
     }
+
     public String getShortCode() {
         return shortCode;
     }
@@ -90,6 +96,7 @@ public class Screen {
     public void setNodeItems(List<HashMap<String, String>> nodeItems) {
         this.nodeItems = nodeItems;
     }
+
     public void setShortCode(String shortCode) {
         this.shortCode = shortCode;
     }
@@ -101,7 +108,6 @@ public class Screen {
     public void setNodeOptions(List<String> nodeOptions) {
         this.nodeOptions = nodeOptions;
     }
-
 
     public void setScreenNext(String screenNext) {
         this.screenNext = screenNext;
@@ -126,6 +132,8 @@ public class Screen {
 
         } else if (getScreenType().equalsIgnoreCase("items")) {
             validateItems();
+        } else if (getScreenType().equalsIgnoreCase("external")) {
+            validateExternal();
         } else {
             throw new Exception("Undefined screentType >> " + getScreenType());
         }

@@ -14,10 +14,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.*;
 
 import javax.validation.constraints.NotEmpty;
 import org.springframework.cloud.gcp.data.firestore.Document;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "users")
@@ -38,6 +41,12 @@ public class User implements Serializable {
 
     @NotEmpty
     private String organization;
+
+    @LastModifiedBy
+    private Principal modified;
+
+    @CreatedBy
+    private Principal created;
     
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -85,6 +94,16 @@ public class User implements Serializable {
         return dateLastModified;
     }
 
+
+    public Principal getCreated() {
+        return created;
+    }
+
+    public Principal getModified() {
+        return modified;
+    }
+    
+
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
     }
@@ -96,6 +115,14 @@ public class User implements Serializable {
     public void setOrganization(String organization) {
         this.organization = organization;
     }
+
+    public void setCreated(Principal created) {
+        this.created = created;
+    }
+    public void setModified(Principal modified) {
+        this.modified = modified;
+    }
+
 
     public String getOrganization() {
         return organization;

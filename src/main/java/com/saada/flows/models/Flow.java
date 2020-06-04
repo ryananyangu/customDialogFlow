@@ -2,6 +2,7 @@ package com.saada.flows.models;
 
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.google.cloud.firestore.annotation.DocumentId;
 
 import org.springframework.cloud.gcp.data.firestore.Document;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.format.annotation.DateTimeFormat;
 
 @Document(collectionName = "menus")
@@ -21,6 +24,12 @@ public class Flow implements Serializable {
 
     
     private static final long serialVersionUID = 1L;
+
+    @LastModifiedBy
+    private Principal modified;
+
+    @CreatedBy
+    private Principal created;
 
     @NotEmpty
     @NotNull
@@ -63,6 +72,14 @@ public class Flow implements Serializable {
         return serialVersionUID;
     }
 
+    public Principal getCreated() {
+        return created;
+    }
+
+    public Principal getModified() {
+        return modified;
+    }
+
     public String getShortCode() {
         return shortCode;
     }
@@ -70,6 +87,14 @@ public class Flow implements Serializable {
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
     }
+
+    public void setCreated(Principal created) {
+        this.created = created;
+    }
+    public void setModified(Principal modified) {
+        this.modified = modified;
+    }
+    
 
     public void setDateLastModified(Date dateLastModified) {
         this.dateLastModified = dateLastModified;
@@ -120,4 +145,5 @@ public class Flow implements Serializable {
         }
 
     }
+
 }
