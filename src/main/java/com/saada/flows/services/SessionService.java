@@ -230,17 +230,15 @@ public class SessionService {
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page, Optional<String> organization) {
         List<SessionHistory> sessions;
         String org = organizationService.getLoggedInUserOrganization().getName();
-        Pageable pageable = PageRequest.of(page.orElse(0), pageSize, Sort.by("dateCreated").descending());
-
+        Pageable pageable = PageRequest.of(page.orElse(0), pageSize, Sort.by(Direction.DESC,"dateCreated").descending());
+        
         if (isAdmin) {
             // sessions
-            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),
-                    pageable,Sort.by(Direction.DESC, "dateCreated"));
+            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),pageable);
             sessions = sessionHist.collectList().block();
-
+            
         }
-        sessions = sessionHistoryRepository.findByOrganization(org, pageable, Sort.by(Direction.DESC, "dateCreated"))
-                .collectList().block();
+        sessions = sessionHistoryRepository.findByOrganization(org,pageable).collectList().block();
         return props.getStatusResponse("200_SCRN", sessions);
     }
 
