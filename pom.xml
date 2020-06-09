@@ -17,7 +17,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--<maven.compiler.release>1.8</maven.compiler.release>-->
         <start-class>com.custom.dialog.lab.App</start-class>
-        <app-version>v1-0-3</app-version>
+        <app-version>v1-0-4</app-version>
         <projectId>ussd-simulator-275712</projectId>
     </properties>
     <parent>
