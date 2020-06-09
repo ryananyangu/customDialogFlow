@@ -24,7 +24,8 @@ public class Screen {
 
     public void validateExternal() throws Exception {
         if (getScreenNext().isEmpty() || !getNodeOptions().isEmpty() || !getNodeItems().isEmpty()
-                || !getNodeExtraData().containsKey("url") || getNodeExtraData().get("url").isEmpty()) {
+                || !getNodeExtraData().containsKey("url") || !getNodeExtraData().containsKey("method")
+                || getNodeExtraData().get("url").isEmpty() || getNodeExtraData().get("method").isEmpty()) {
             throw new Exception(
                     "Validation failed, External input has to define screen Next and not have option and items");
         }

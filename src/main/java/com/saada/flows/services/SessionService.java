@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+
+import com.saada.flows.externalServices.ExternalRequestProcessor;
 import com.saada.flows.models.Flow;
 import com.saada.flows.models.Journey;
 import com.saada.flows.models.Screen;
@@ -47,6 +49,8 @@ public class SessionService {
     @Autowired
     private OrganizationService organizationService;
 
+    // private Session latestSession;
+
     public String screenNavigate(String sessionId, String input, String serviceCode, String customerIdentifier) {
         Session session = new Session();
         session.setSessionId(sessionId);
@@ -57,13 +61,14 @@ public class SessionService {
             return newSessionProcessor(session, serviceCode, customerIdentifier);
         }
 
-        Session latestSession = sessionRepository.findById(session.getSessionId()).block();
-        session.setDateCreated(latestSession.getDateCreated());
-        Screen currentScreen = latestSession.getScreen();
+        session = sessionRepository.findById(session.getSessionId()).block();
+        session.setDateLastModified(Calendar.getInstance().getTime());
+        session.setDateCreated(session.getDateCreated());
+        Screen currentScreen = session.getScreen();
         String shortoode_cont = sessionHistoryRepository.findById(session.getSessionId()).block().getServiceCode();
         HashMap<String, Screen> screens;
         String nextScreen = currentScreen.getScreenNext();
-        HashMap<String, Object> extraData = latestSession.getExtraData();
+        HashMap<String, Object> extraData = session.getExtraData();
 
         try {
             screens = flowService.getFlowInstance(shortoode_cont).getScreens();
@@ -76,23 +81,24 @@ public class SessionService {
                 input = validateItem.get("displayText");
                 extraData.put(currentScreen.getNodeName(), input);
             }
+            
         } catch (Exception ex) {
-            String display = "END " + ex.getMessage();
-            return existingSessionProcessor(session, display, currentScreen, input, extraData);
+            ex.printStackTrace();
+            HashMap<String, String> add_exit = currentScreen.getNodeExtraData();
+            add_exit.put("exit_message", ex.getMessage());
+
+            currentScreen.setNodeExtraData(add_exit);
+
+            return existingSessionProcessor(session, currentScreen, input, "END ");
         }
 
         if ("end".equalsIgnoreCase(nextScreen)) {
-            String display = dynamicText("END " + currentScreen.getNodeExtraData().get("exit_message"), extraData);
-
-            return existingSessionProcessor(session, display, currentScreen, input, extraData);
+            return existingSessionProcessor(session, currentScreen, input, "END ");
         }
 
         Screen screen = screens.get(nextScreen);
-        String display = displayText(screen);
-        extraData.put(currentScreen.getNodeName(), input);
-        display = dynamicText("CON " + display, extraData);
 
-        return existingSessionProcessor(session, display, screen, input, extraData);
+        return existingSessionProcessor(session, screen, input, "CON ");
     }
 
     public String optionsInputValidate(List<String> options, String input) throws Exception {
@@ -102,7 +108,7 @@ public class SessionService {
             if (options.size() < convertedInput) {
                 throw new Exception(props.getFlowError("2"));
             }
-            response += "\n" + options.get(convertedInput - 1);
+            response += "\n" + options.get(convertedInput - 1) + ",";
         }
 
         return response;
@@ -128,7 +134,8 @@ public class SessionService {
                 screenText += "\n" + count + ". " + String.valueOf(item.get("displayText"));
                 count++;
             }
-        } else if ("options".equalsIgnoreCase(screen.getScreenType())) {
+        } else if ("options".equalsIgnoreCase(screen.getScreenType())
+                || "external".equalsIgnoreCase(screen.getScreenType())) {
             int count = 1;
 
             for (String opt : screen.getNodeOptions()) {
@@ -167,6 +174,7 @@ public class SessionService {
         try {
             flow = flowService.getFlowInstance(input);
             screen = flow.getScreens().get("start_page");
+            screen = processExternal(screen, session,customerIdentifier);
         } catch (Exception ex) {
             return "END " + ex.getMessage();
         }
@@ -200,8 +208,34 @@ public class SessionService {
 
     }
 
-    public String existingSessionProcessor(Session session, String display, Screen screen, String input,
-            HashMap<String, Object> extraData) {
+    public String existingSessionProcessor(Session session, Screen screen, String input, String action) {
+
+        String display = new String();
+        HashMap<String, Object> extraData = session.getExtraData();
+        SessionHistory sessionHistory = sessionHistoryRepository.findById(session.getSessionId()).block();
+        extraData.put(session.getScreen().getNodeName(), input);
+
+        try {
+            screen = processExternal(screen, session,sessionHistory.getPhoneNumber());
+            System.out.println(new JSONObject(screen) + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        } catch (Exception e) {
+            e.printStackTrace();
+            screen = session.getScreen();
+            HashMap<String, String> add_exit = screen.getNodeExtraData();
+            add_exit.put("exit_message", e.getMessage());
+            screen.setNodeExtraData(add_exit);
+            action = "END ";
+        }
+        if (session.getScreen().getNodeName().equalsIgnoreCase(screen.getNodeName())) {
+
+
+            display = action + screen.getNodeExtraData().get("exit_message");
+        } else {
+            display = action + displayText(screen);
+        }
+
+        display = dynamicText(display, extraData);
+
         Journey journey = new Journey();
         journey.setInput(input);
         journey.setResponse(display);
@@ -209,7 +243,7 @@ public class SessionService {
         session.setJourney(journey);
         session.setExtraData(extraData);
 
-        SessionHistory sessionHistory = sessionHistoryRepository.findById(session.getSessionId()).block();
+        
         sessionHistory.setDateLastModified(Calendar.getInstance().getTime());
         if (display.startsWith("END")) {
             sessionHistory.setStatus("COMPLETE");
@@ -218,7 +252,7 @@ public class SessionService {
             sessionHistory.setStatus("INCOMPLETE");
             sessionRepository.save(session).block();
         }
-
+        
         List<Session> sessions = sessionHistory.getSessions();
         sessions.add(session);
         sessionHistory.setSessions(sessions);
@@ -227,18 +261,31 @@ public class SessionService {
 
     }
 
+    public Screen processExternal(Screen screen, Session session, String phoneNumber) throws Exception {
+
+
+        ExternalRequestProcessor processor = new ExternalRequestProcessor();
+        processor.setScreen(screen);
+        processor.setSession(session);
+        processor.setPhoneNumber(phoneNumber);
+        return processor.processResponse();
+
+    }
+
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page, Optional<String> organization) {
         List<SessionHistory> sessions;
         String org = organizationService.getLoggedInUserOrganization().getName();
-        Pageable pageable = PageRequest.of(page.orElse(0), pageSize, Sort.by(Direction.DESC,"dateCreated").descending());
-        
+        Pageable pageable = PageRequest.of(page.orElse(0), pageSize,
+                Sort.by(Direction.DESC, "dateCreated").descending());
+
         if (isAdmin) {
             // sessions
-            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),pageable);
+            Flux<SessionHistory> sessionHist = sessionHistoryRepository.findByOrganization(organization.orElse(org),
+                    pageable);
             sessions = sessionHist.collectList().block();
-            
+
         }
-        sessions = sessionHistoryRepository.findByOrganization(org,pageable).collectList().block();
+        sessions = sessionHistoryRepository.findByOrganization(org, pageable).collectList().block();
         return props.getStatusResponse("200_SCRN", sessions);
     }
 
