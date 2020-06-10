@@ -36,7 +36,8 @@ public class MessageBirdProcessor {
     public void coreProcessor(MessageBirdMessage message) {
 
         HashMap<String, String> headers = new HashMap<>();
-        JSONObject request = new JSONObject();
+        HashMap<String, Object> request = new HashMap<>();
+
 
         headers.put("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         headers.put("Authorization", "AccessKey " + accesskey);
@@ -52,8 +53,10 @@ public class MessageBirdProcessor {
 
             String response = sessionService.screenNavigate(session, input, message.getMessage().getTo(),
                     message.getContact().getMsisdn());
+            HashMap<String,String> text = new HashMap<>();
+            text.put("text", response.substring(3));
 
-            request.put("content", new JSONObject().put("text", response.substring(3)));
+            request.put("content", text);
 
             try {
 
@@ -63,6 +66,7 @@ public class MessageBirdProcessor {
                 }
                 Utils.postRequest(request.toString(), url, headers);
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + e.getLocalizedMessage()
                         + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             }

@@ -23,7 +23,7 @@ public class AdhocTests {
         List<HashMap<String,Object>> items = new ArrayList<>();
         
         HashMap<String,Object> item = new HashMap<>();
-        item.put("name", "Onions");
+        item.put("name", "\n Onions");
         item.put("quantity", 1);
 
         items.add(item);
