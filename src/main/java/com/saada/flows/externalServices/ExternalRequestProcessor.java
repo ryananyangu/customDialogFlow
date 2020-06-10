@@ -154,14 +154,9 @@ public class ExternalRequestProcessor {
 
                 response1.put("items", items);
 
-                System.out.println(new JSONObject(response1)
-                        + "<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
                 Map<String, Object> finalreponse = new JSONObject(processRequest(new JSONObject(response1).toString(),url))
                         .toMap();
-
-                System.out.println(new JSONObject(finalreponse)
-                        + "<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
                 String orderno = finalreponse.get("OrderNumber").toString();
 

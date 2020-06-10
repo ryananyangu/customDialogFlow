@@ -83,7 +83,6 @@ public class SessionService {
             }
             
         } catch (Exception ex) {
-            ex.printStackTrace();
             HashMap<String, String> add_exit = currentScreen.getNodeExtraData();
             add_exit.put("exit_message", ex.getMessage());
 
@@ -217,9 +216,7 @@ public class SessionService {
 
         try {
             screen = processExternal(screen, session,sessionHistory.getPhoneNumber());
-            System.out.println(new JSONObject(screen) + ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         } catch (Exception e) {
-            e.printStackTrace();
             screen = session.getScreen();
             HashMap<String, String> add_exit = screen.getNodeExtraData();
             add_exit.put("exit_message", e.getMessage());
