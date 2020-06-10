@@ -28,16 +28,10 @@ public class MessageBirdProcessor {
     @Value("${message.bird.accesskey}")
     private String accesskey;
 
-
-
-
-
-
     public void coreProcessor(MessageBirdMessage message) {
 
         HashMap<String, String> headers = new HashMap<>();
         HashMap<String, Object> request = new HashMap<>();
-
 
         headers.put("Content-Type", MediaType.APPLICATION_JSON_VALUE);
         headers.put("Authorization", "AccessKey " + accesskey);
@@ -53,7 +47,7 @@ public class MessageBirdProcessor {
 
             String response = sessionService.screenNavigate(session, input, message.getMessage().getTo(),
                     message.getContact().getMsisdn());
-            HashMap<String,String> text = new HashMap<>();
+            HashMap<String, String> text = new HashMap<>();
             text.put("text", response.substring(3));
 
             request.put("content", text);
@@ -64,11 +58,11 @@ public class MessageBirdProcessor {
                     String urlend = conversationBaseUrl + message.getConversation().getId();
                     Utils.patchRequest(urlend, headers, new JSONObject().put("status", "archived").toString());
                 }
-                Utils.postRequest(request.toString(), url, headers);
+                Utils.postRequest(url, new JSONObject(request).toString(), headers);
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + e.getLocalizedMessage()
-                        + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                // e.printStackTrace();
+                System.out.println(
+                        ">>>>>>>>>>>>>>>>>>>>>>> " + e.getLocalizedMessage() + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             }
         }
     }

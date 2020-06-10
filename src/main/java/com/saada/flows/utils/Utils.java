@@ -2,6 +2,7 @@ package com.saada.flows.utils;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -129,7 +130,13 @@ public final class Utils {
             throws ClientProtocolException, IOException {
 
         CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-        HttpPost httppost = new HttpPost(url);
+        HttpPost httppost;
+        try {
+            httppost = new HttpPost(new URI(url));
+        } catch (URISyntaxException e) {    
+            e.printStackTrace();
+            return "";
+        }
 
         StringEntity entity = new StringEntity(payload, StandardCharsets.UTF_8);
 
@@ -153,7 +160,13 @@ public final class Utils {
     public static String getRequest(String url, HashMap<String,String> headers)
             throws ClientProtocolException, IOException {
         CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-        HttpGet httpGet = new HttpGet(url);
+        HttpGet httpGet;
+        try {
+            httpGet = new HttpGet(new URI(url));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return "";
+        }
 
         for (String header : headers.keySet()) {
             httpGet.addHeader(header, headers.get(header));
