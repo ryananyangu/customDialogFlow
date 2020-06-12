@@ -30,6 +30,8 @@ public class MessageBirdProcessor {
 
     public void coreProcessor(MessageBirdMessage message) {
 
+        // 4936ec82b5e4447c8df04916fe2bdffc ==> webhook ID
+
         HashMap<String, String> headers = new HashMap<>();
         HashMap<String, Object> request = new HashMap<>();
 

@@ -270,9 +270,14 @@ public class SessionService {
     }
 
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page, Optional<String> organization) {
+        int int_page = page.orElse(0);
+        if(page.isPresent()){
+            int_page = page.get() -1;
+
+        }
         List<SessionHistory> sessions;
         String org = organizationService.getLoggedInUserOrganization().getName();
-        Pageable pageable = PageRequest.of(page.orElse(0), pageSize,
+        Pageable pageable = PageRequest.of(int_page, pageSize,
                 Sort.by(Direction.DESC, "dateCreated").descending());
 
         if (isAdmin) {

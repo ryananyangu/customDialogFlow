@@ -129,6 +129,7 @@ public class ExternalRequestProcessor {
 
                 String payload = preparePayload(session.getSessionId());
                 Map<String, Object> response = new JSONObject(processRequest(payload,"")).toMap();
+                System.out.println(response);
                 List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
 
                 screen.setScreenText(screen.getScreenText() + processResponse(items));
@@ -141,6 +142,8 @@ public class ExternalRequestProcessor {
                 String url = "https://api.farmula.ng/ussd/order";
                 String payload = preparePayload(session.getSessionId());
                 Map<String, Object> response1 = new JSONObject(processRequest(payload,"")).toMap();
+
+                System.out.println(response1);
 
                 List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response1.get("items");
                 for (HashMap<String, Object> item : items) {
@@ -157,7 +160,7 @@ public class ExternalRequestProcessor {
 
                 Map<String, Object> finalreponse = new JSONObject(processRequest(new JSONObject(response1).toString(),url))
                         .toMap();
-
+                        System.out.println(finalreponse);
                 String orderno = finalreponse.get("OrderNumber").toString();
 
                 HashMap<String, String> extraData = screen.getNodeExtraData();
