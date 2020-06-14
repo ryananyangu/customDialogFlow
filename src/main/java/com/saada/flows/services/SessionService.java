@@ -81,10 +81,11 @@ public class SessionService {
                 input = validateItem.get("displayText");
                 extraData.put(currentScreen.getNodeName(), input);
             }
-            
+
         } catch (Exception ex) {
+            ex.printStackTrace();
             HashMap<String, String> add_exit = currentScreen.getNodeExtraData();
-            add_exit.put("exit_message", ex.getMessage());
+            add_exit.put("exit_message", props.getFlowError("7"));
 
             currentScreen.setNodeExtraData(add_exit);
 
@@ -174,7 +175,7 @@ public class SessionService {
             flow = flowService.getFlowInstance(input);
             screen = flow.getScreens().get("start_page");
 
-            screen = processExternal(screen, session,customerIdentifier);
+            screen = processExternal(screen, session, customerIdentifier);
         } catch (Exception ex) {
             return "END " + ex.getMessage();
         }
@@ -216,16 +217,16 @@ public class SessionService {
         extraData.put(session.getScreen().getNodeName(), input);
 
         try {
-            screen = processExternal(screen, session,sessionHistory.getPhoneNumber());
+            screen = processExternal(screen, session, sessionHistory.getPhoneNumber());
         } catch (Exception e) {
+            e.printStackTrace();
             screen = session.getScreen();
             HashMap<String, String> add_exit = screen.getNodeExtraData();
-            add_exit.put("exit_message", e.getMessage());
+            add_exit.put("exit_message", props.getFlowError("7"));
             screen.setNodeExtraData(add_exit);
             action = "END ";
         }
         if (session.getScreen().getNodeName().equalsIgnoreCase(screen.getNodeName())) {
-
 
             display = action + screen.getNodeExtraData().get("exit_message");
         } else {
@@ -241,7 +242,6 @@ public class SessionService {
         session.setJourney(journey);
         session.setExtraData(extraData);
 
-        
         sessionHistory.setDateLastModified(Calendar.getInstance().getTime());
         if (display.startsWith("END")) {
             sessionHistory.setStatus("COMPLETE");
@@ -250,7 +250,7 @@ public class SessionService {
             sessionHistory.setStatus("INCOMPLETE");
             sessionRepository.save(session).block();
         }
-        
+
         List<Session> sessions = sessionHistory.getSessions();
         sessions.add(session);
         sessionHistory.setSessions(sessions);
@@ -261,10 +261,9 @@ public class SessionService {
 
     public Screen processExternal(Screen screen, Session session, String phoneNumber) throws Exception {
 
-        if(!screen.getScreenType().equalsIgnoreCase("external")){
+        if (!screen.getScreenType().equalsIgnoreCase("external")) {
             return screen;
         }
-
 
         ExternalRequestProcessor processor = new ExternalRequestProcessor();
         processor.setScreen(screen);
@@ -276,14 +275,13 @@ public class SessionService {
 
     public JSONObject listSessions(boolean isAdmin, Optional<Integer> page, Optional<String> organization) {
         int int_page = page.orElse(0);
-        if(page.isPresent()){
-            int_page = page.get() -1;
+        if (page.isPresent()) {
+            int_page = page.get() - 1;
 
         }
         List<SessionHistory> sessions;
         String org = organizationService.getLoggedInUserOrganization().getName();
-        Pageable pageable = PageRequest.of(int_page, pageSize,
-                Sort.by(Direction.DESC, "dateCreated").descending());
+        Pageable pageable = PageRequest.of(int_page, pageSize, Sort.by(Direction.DESC, "dateCreated").descending());
 
         if (isAdmin) {
             // sessions

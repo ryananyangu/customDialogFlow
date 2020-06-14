@@ -4,5 +4,6 @@
     "3":"Service Temporarily unavailable",
     "4":"Invalid shortCode",
     "5":"Screen not available in the flow",
-    "6":"Display error"
+    "6":"Display error",
+    "7":"Request failed. Please contact the customer care for support"
 }
