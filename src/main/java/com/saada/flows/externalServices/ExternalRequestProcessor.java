@@ -51,8 +51,8 @@ public class ExternalRequestProcessor {
         this.phoneNumber = phoneNumber;
     }
 
-    public String processRequest(String payload , String url) throws Exception {
-        if(url.isEmpty()){
+    public String processRequest(String payload, String url) throws Exception {
+        if (url.isEmpty()) {
             url = screen.getNodeExtraData().get("url");
         }
         // TODO: Make generic
@@ -86,9 +86,11 @@ public class ExternalRequestProcessor {
         HashMap<String, List<HashMap<String, Object>>> formattedItems = new HashMap<>();
         formattedItems.put("items", new ArrayList<>());
         for (int i = 0; i < items.length; i++) {
+
             HashMap<String, Object> itemObj = new HashMap<>();
 
-            itemObj.put("name", Utils.rmNewlineTab(items[i]));
+            itemObj.put("name", Utils.rmNewlineTab(items[i]).split("-")[0].trim());
+
             try {
                 itemObj.put("quantity", Integer.parseInt(quantity[i]));
             } catch (Exception ex) {
@@ -102,72 +104,90 @@ public class ExternalRequestProcessor {
 
     public Screen processResponse() throws Exception {
         if (screen.getNodeName().equalsIgnoreCase("start_page")) {
-            Map<String, Object> response = new JSONObject(processRequest(preparePayload(""),"")).toMap();
+            Map<String, Object> response = new JSONObject(processRequest(preparePayload(""), "")).toMap();
             List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
             List<String> options = new ArrayList<>();
             for (HashMap<String, Object> item : items) {
-                options.add(item.get("Crop").toString());
+                options.add(item.get("Crop").toString() + " - N" + item.get("Price").toString() + " per 50Kg Sack");
             }
             screen.setNodeOptions(options);
             screen.setScreenType("options");
             screen.validateOptions();
         } else if ("Complete_FinalSummary".equalsIgnoreCase(screen.getNodeName())) {
 
-            if (screen.getNodeItems().isEmpty()) {
+            List<HashMap<String, String>> screen_items = new ArrayList<>();
+            HashMap<String, String> continue_next = new HashMap<>();
+            continue_next.put("displayText", "Continue");
+            continue_next.put("nextScreen", screen.getScreenNext());
 
-                List<HashMap<String, String>> screen_items = new ArrayList<>();
-                HashMap<String, String> continue_next = new HashMap<>();
-                continue_next.put("displayText", "Continue");
-                continue_next.put("nextScreen", "end");
+            screen_items.add(continue_next);
 
-                screen_items.add(continue_next);
+            HashMap<String, String> cancel_next = new HashMap<>();
+            cancel_next.put("displayText", "Cancel");
+            cancel_next.put("nextScreen", "start_page");
+            screen_items.add(cancel_next);
 
-                HashMap<String, String> cancel_next = new HashMap<>();
-                cancel_next.put("displayText", "Cancel");
-                cancel_next.put("nextScreen", "start_page");
-                screen_items.add(cancel_next);
+            String payload = preparePayload(session.getSessionId());
+            Map<String, Object> response = new JSONObject(processRequest(payload, "")).toMap();
+            List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
 
-                String payload = preparePayload(session.getSessionId());
-                Map<String, Object> response = new JSONObject(processRequest(payload,"")).toMap();
-                System.out.println(response);
-                List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
+            screen.setScreenText(screen.getScreenText() + processResponse(items));
+            screen.setNodeItems(screen_items);
+            screen.setScreenNext("");
+            screen.setScreenType("items");
+            screen.validateItems();
+            return screen;
 
-                screen.setScreenText(screen.getScreenText() + processResponse(items));
-                screen.setNodeItems(screen_items);
-                screen.setScreenNext("");
-                screen.setScreenType("items");
-                screen.validateItems();
-                return screen;
-            } else {
-                String url = "https://api.farmula.ng/ussd/order";
-                String payload = preparePayload(session.getSessionId());
-                Map<String, Object> response1 = new JSONObject(processRequest(payload,"")).toMap();
+        } else if ("Order_complete".equalsIgnoreCase(screen.getNodeName())) {
 
-                System.out.println(response1);
+            String payload = preparePayload(session.getSessionId());
 
-                List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response1.get("items");
-                for (HashMap<String, Object> item : items) {
-                    if (item.containsKey("GrandTotal")) {
-                        item.put("contact", phoneNumber);
-                        // items.add(item);
-                        break;
-                    }
+            String url = "https://api.farmula.ng/ussd/get_order";
+            Map<String, Object> response1 = new JSONObject(processRequest(payload, url)).toMap();
 
+            
+
+
+            List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response1.get("items");
+            for (HashMap<String, Object> item : items) {
+                if (item.containsKey("GrandTotal")) {
+                    item.put("contact", phoneNumber);
+                    break;
                 }
 
-                response1.put("items", items);
-
-
-                Map<String, Object> finalreponse = new JSONObject(processRequest(new JSONObject(response1).toString(),url))
-                        .toMap();
-                        System.out.println(finalreponse);
-                String orderno = finalreponse.get("OrderNumber").toString();
-
-                HashMap<String, String> extraData = screen.getNodeExtraData();
-                extraData.put("exit_message", "Your have placed Order " + orderno + " of " + processResponse(items));
-                screen.setNodeExtraData(extraData);
-                return screen;
             }
+
+            response1.put("items", items);
+            response1.remove("message");
+            response1.remove("status");
+            System.out.println(response1+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            Map<String, Object> finalreponse = new JSONObject(processRequest(new JSONObject(response1).toString(), ""))
+                    .toMap();
+            System.out.println(finalreponse+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+            String orderno = finalreponse.get("OrderNumber").toString();
+
+            HashMap<String, String> extraData = screen.getNodeExtraData();
+            
+            List<HashMap<String, String>> screen_items = new ArrayList<>();
+            HashMap<String, String> continue_next = new HashMap<>();
+            continue_next.put("displayText", "Exit");
+            continue_next.put("nextScreen", "end");
+
+            screen_items.add(continue_next);
+
+            HashMap<String, String> cancel_next = new HashMap<>();
+            cancel_next.put("displayText", "Add order");
+            cancel_next.put("nextScreen", "start_page");
+            screen_items.add(cancel_next);
+
+            String text = screen.getScreenText()+" " + orderno + " of " + processResponse(items);
+            screen.setScreenText(text);
+            screen.setNodeItems(screen_items);
+            screen.setScreenNext("");
+            screen.setScreenType("items");
+            screen.validateItems();
+            screen.setNodeExtraData(extraData);
+            return screen;
 
         }
 
@@ -181,7 +201,7 @@ public class ExternalRequestProcessor {
 
         for (HashMap<String, Object> item : items) {
             if (item.containsKey("Crop")) {
-                summary += "\n" + item.get("Crop") + " : " + item.get("Qty") + " X " + item.get("UnitPrice") + " = "
+                summary += "\n" + item.get("Crop") + " : " + item.get("Qty") + " * " + item.get("UnitPrice") + " = "
                         + item.get("TotalCost");
             } else {
                 total = "\n ------------------- \n Grand Total " + item.get("GrandTotal");
