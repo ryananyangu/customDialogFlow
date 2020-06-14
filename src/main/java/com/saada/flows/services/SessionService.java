@@ -173,6 +173,7 @@ public class SessionService {
         try {
             flow = flowService.getFlowInstance(input);
             screen = flow.getScreens().get("start_page");
+
             screen = processExternal(screen, session,customerIdentifier);
         } catch (Exception ex) {
             return "END " + ex.getMessage();
@@ -259,6 +260,10 @@ public class SessionService {
     }
 
     public Screen processExternal(Screen screen, Session session, String phoneNumber) throws Exception {
+
+        if(!screen.getScreenType().equalsIgnoreCase("external")){
+            return screen;
+        }
 
 
         ExternalRequestProcessor processor = new ExternalRequestProcessor();

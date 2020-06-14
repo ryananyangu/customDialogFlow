@@ -68,7 +68,7 @@ public class ExternalRequestProcessor {
                 throw new Exception(props.getFlowError("6") + ">> <<" + Utils.getCodelineNumber());
             }
         } catch (Exception ex) {
-
+            ex.printStackTrace();
             throw new Exception(ex.getLocalizedMessage() + ">> <<" + Utils.getCodelineNumber());
         }
 
