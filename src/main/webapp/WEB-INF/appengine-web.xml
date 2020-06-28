@@ -10,8 +10,8 @@
     </env-variables>
     <instance-class>F1</instance-class>
     <automatic-scaling>
-        <max-instances>1</max-instances>
-        <min-instances>0</min-instances>
+        <max-instances>5</max-instances>
+        <min-instances>1</min-instances>
         <!--<idle-timeout>30m</idle-timeout>-->
     </automatic-scaling>
     <system-properties>
