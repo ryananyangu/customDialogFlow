@@ -124,18 +124,24 @@ public class ExternalRequestProcessor {
 
             HashMap<String, String> cancel_next = new HashMap<>();
             cancel_next.put("displayText", "Cancel");
-            cancel_next.put("nextScreen", "start_page");
+            cancel_next.put("nextScreen", "end");
             screen_items.add(cancel_next);
 
             String payload = preparePayload(session.getSessionId());
             Map<String, Object> response = new JSONObject(processRequest(payload, "")).toMap();
             List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
 
+
+            Thread.sleep(5000);
+
             screen.setScreenText(screen.getScreenText() + processResponse(items));
             screen.setNodeItems(screen_items);
             screen.setScreenNext("");
             screen.setScreenType("items");
             screen.validateItems();
+            HashMap<String,String> extraData = screen.getNodeExtraData();
+            extraData.put("exit_message","Thanks for checking out the service");
+            screen.setNodeExtraData(extraData);
             return screen;
 
         } else if ("Order_complete".equalsIgnoreCase(screen.getNodeName())) {
@@ -160,10 +166,8 @@ public class ExternalRequestProcessor {
             response1.put("items", items);
             response1.remove("message");
             response1.remove("status");
-            System.out.println(response1+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<");
             Map<String, Object> finalreponse = new JSONObject(processRequest(new JSONObject(response1).toString(), ""))
                     .toMap();
-            System.out.println(finalreponse+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             String orderno = finalreponse.get("OrderNumber").toString();
 
             HashMap<String, String> extraData = screen.getNodeExtraData();

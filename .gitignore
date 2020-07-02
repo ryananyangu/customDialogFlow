@@ -8,3 +8,4 @@ target/
 configs/
 .vscode/
 USSD-SIMULATOR-*.json
+nbactions.xml

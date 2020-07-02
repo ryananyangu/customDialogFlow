@@ -49,8 +49,6 @@ public class SessionService {
     @Autowired
     private OrganizationService organizationService;
 
-    // private Session latestSession;
-
     public String screenNavigate(String sessionId, String input, String serviceCode, String customerIdentifier) {
         Session session = new Session();
         session.setSessionId(sessionId);
@@ -73,6 +71,12 @@ public class SessionService {
         try {
             screens = flowService.getFlowInstance(shortoode_cont).getScreens();
             if ("options".equalsIgnoreCase(currentScreen.getScreenType())) {
+
+                if (extraData.containsKey(currentScreen.getNodeName())) {
+                    String item = extraData.get(currentScreen.getNodeName()).toString().trim();
+                    input += "," + (currentScreen.getNodeOptions().indexOf(item) + 1);
+                }
+
                 input = optionsInputValidate(currentScreen.getNodeOptions(), input);
                 extraData.put(currentScreen.getNodeName(), input);
             } else if ("items".equalsIgnoreCase(currentScreen.getScreenType())) {
@@ -80,24 +84,27 @@ public class SessionService {
                 nextScreen = validateItem.get("nextScreen");
                 input = validateItem.get("displayText");
                 extraData.put(currentScreen.getNodeName(), input);
+            } else if (extraData.containsKey(currentScreen.getNodeName())) {
+                input += ","+extraData.get(currentScreen.getNodeName()).toString().trim();
+
             }
 
         } catch (Exception ex) {
-            
+
             HashMap<String, String> add_exit = currentScreen.getNodeExtraData();
-            if(ex.getLocalizedMessage().startsWith("err")){
+            if (ex.getLocalizedMessage().startsWith("err")) {
                 add_exit.put("exit_message", ex.getLocalizedMessage().substring(3));
-            }else{
+            } else {
                 ex.printStackTrace();
                 add_exit.put("exit_message", props.getFlowError("7"));
             }
-            
 
             currentScreen.setNodeExtraData(add_exit);
 
             return existingSessionProcessor(session, currentScreen, input, "END ");
         }
 
+        
         if ("end".equalsIgnoreCase(nextScreen)) {
             return existingSessionProcessor(session, currentScreen, input, "END ");
         }
@@ -109,12 +116,25 @@ public class SessionService {
 
     public String optionsInputValidate(List<String> options, String input) throws Exception {
         String response = new String();
-        for (String item : input.split(",")) {
-            int convertedInput = Integer.parseInt(item);
+
+        String[] opts = input.split(",");
+        for (int i = 0; i < opts.length; ++i) {
+            int convertedInput;
+            try {
+                convertedInput = Integer.parseInt(opts[i]);
+            } catch (Exception e) {
+                throw new Exception(props.getFlowError("2"));
+            }
+
             if (options.size() < convertedInput) {
                 throw new Exception(props.getFlowError("2"));
             }
-            response += "\n" + options.get(convertedInput - 1) + ",";
+            if (i == 0) {
+                response += options.get(convertedInput - 1);
+            } else {
+                response += "," + options.get(convertedInput - 1);
+            }
+
         }
 
         return response;
@@ -220,6 +240,7 @@ public class SessionService {
         HashMap<String, Object> extraData = session.getExtraData();
         SessionHistory sessionHistory = sessionHistoryRepository.findById(session.getSessionId()).block();
         extraData.put(session.getScreen().getNodeName(), input);
+        
 
         try {
             screen = processExternal(screen, session, sessionHistory.getPhoneNumber());
@@ -227,9 +248,9 @@ public class SessionService {
             screen = session.getScreen();
             HashMap<String, String> add_exit = screen.getNodeExtraData();
 
-            if(e.getLocalizedMessage().startsWith("err")){
+            if (e.getLocalizedMessage().startsWith("err")) {
                 add_exit.put("exit_message", e.getLocalizedMessage().substring(3));
-            }else{
+            } else {
                 e.printStackTrace();
                 add_exit.put("exit_message", props.getFlowError("7"));
             }
@@ -237,6 +258,9 @@ public class SessionService {
             screen.setNodeExtraData(add_exit);
             action = "END ";
         }
+
+        session.getExtraData().get(screen.getNodeName());
+
         if (session.getScreen().getNodeName().equalsIgnoreCase(screen.getNodeName())) {
 
             display = action + screen.getNodeExtraData().get("exit_message");
@@ -303,6 +327,22 @@ public class SessionService {
         }
         sessions = sessionHistoryRepository.findByOrganization(org, pageable).collectList().block();
         return props.getStatusResponse("200_SCRN", sessions);
+    }
+
+    public Screen cyclicProcessing(Session session, Screen screen) {
+        if (screen.getScreenType().equalsIgnoreCase("option")
+                && session.getExtraData().containsKey(screen.getNodeName())) {
+
+            String[] activeSelections = session.getExtraData().get(screen.getNodeName()).toString().split(",");
+
+
+            for (String item : activeSelections) {
+                screen.getNodeOptions().remove(item);
+            }
+        }
+
+        return screen;
+
     }
 
 }
