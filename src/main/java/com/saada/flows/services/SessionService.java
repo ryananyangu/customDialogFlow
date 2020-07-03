@@ -178,7 +178,7 @@ public class SessionService {
         for (String key : sessionDetails.keySet()) {
             String placeholder = "^" + key + "^";
             if (screenText.contains(placeholder)) {
-                screenText = screenText.replace(placeholder, sessionDetails.get(key).toString());
+                screenText = screenText.replace(placeholder, sessionDetails.get(key).toString().split(",")[0]);
             }
         }
 
