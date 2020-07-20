@@ -81,7 +81,7 @@ public class ExternalRequestProcessor {
 
         }
 
-        String[] items = session.getExtraData().get("start_page").toString().split(",");
+        String[] items = session.getExtraData().get("crops_list").toString().split(",");
         String[] quantity = session.getExtraData().get("SelectProceed").toString().split(",");
         HashMap<String, List<HashMap<String, Object>>> formattedItems = new HashMap<>();
         formattedItems.put("items", new ArrayList<>());
@@ -103,7 +103,7 @@ public class ExternalRequestProcessor {
     }
 
     public Screen processResponse() throws Exception {
-        if (screen.getNodeName().equalsIgnoreCase("start_page")) {
+        if (screen.getNodeName().equalsIgnoreCase("crops_list")) {
             Map<String, Object> response = new JSONObject(processRequest(preparePayload(""), "")).toMap();
             List<HashMap<String, Object>> items = (List<HashMap<String, Object>>) response.get("items");
             List<String> options = new ArrayList<>();
@@ -181,10 +181,10 @@ public class ExternalRequestProcessor {
 
             HashMap<String, String> cancel_next = new HashMap<>();
             cancel_next.put("displayText", "Add order");
-            cancel_next.put("nextScreen", "start_page");
+            cancel_next.put("nextScreen", "crops_list");
             screen_items.add(cancel_next);
 
-            String text = screen.getScreenText()+" " + orderno + " of " + processResponse(items);
+            String text = screen.getScreenText()+" " + orderno + " of " + processResponse(items) +"\nThanks You will receive and SMS containing your order number and delivery date.";
             screen.setScreenText(text);
             screen.setNodeItems(screen_items);
             screen.setScreenNext("");
